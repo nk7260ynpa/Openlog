@@ -1,0 +1,43 @@
+{
+  "name": "@chen/openlog",
+  "version": "0.1.0",
+  "description": "AI-native logging companion CLI",
+  "keywords": [
+    "openlog",
+    "cli",
+    "logging",
+    "ai"
+  ],
+  "license": "MIT",
+  "author": "Openlog Contributors",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "openlog": "./bin/openlog.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "node build.js",
+    "dev": "tsc --watch",
+    "dev:cli": "node build.js && node bin/openlog.js",
+    "prepare": "node build.js"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "commander": "^14.0.0"
+  }
+}
