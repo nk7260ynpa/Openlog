@@ -9,11 +9,24 @@
 
 import path from 'path';
 import { promises as fs } from 'fs';
+import { createRequire } from 'module';
 import chalk from 'chalk';
 import ora from 'ora';
 import { checkbox } from '@inquirer/prompts';
 
 import { AI_TOOLS, OPENLOG_DIR_NAME, findToolByValue, type AIToolOption } from './config.js';
+import {
+  getSkillTemplates,
+  getCommandContents,
+  generateSkillContent,
+} from './shared/index.js';
+import {
+  generateCommands,
+  CommandAdapterRegistry,
+} from './command-generation/index.js';
+
+const require = createRequire(import.meta.url);
+const { version: OPENLOG_VERSION } = require('../../package.json') as { version: string };
 
 export interface InitCommandOptions {
   /**
@@ -66,19 +79,24 @@ export class InitCommand {
       throw error;
     }
 
+    const generatedSummaries: ToolGenerationSummary[] = [];
     for (const tool of selectedTools) {
-      const toolDir = path.join(projectPath, tool.skillsDir);
-      const spinner = ora(`建立 ${tool.skillsDir}/ (${tool.name})…`).start();
+      const spinner = ora(`設定 ${tool.name} (${tool.skillsDir}/)…`).start();
       try {
-        await fs.mkdir(toolDir, { recursive: true });
-        spinner.succeed(chalk.green(`已建立 ${tool.skillsDir}/ for ${tool.name}`));
+        const summary = await this.generateSkillsAndCommands(projectPath, tool);
+        generatedSummaries.push(summary);
+        spinner.succeed(
+          chalk.green(
+            `已設定 ${tool.name}：${summary.skillCount} 個 skill、${summary.commandCount} 個 command`,
+          ),
+        );
       } catch (error) {
-        spinner.fail(`建立 ${tool.skillsDir}/ 失敗`);
+        spinner.fail(`設定 ${tool.name} 失敗`);
         throw error;
       }
     }
 
-    this.printSummary(projectPath, openlogPath, selectedTools);
+    this.printSummary(projectPath, openlogPath, selectedTools, generatedSummaries);
   }
 
   private async ensureProjectDir(projectPath: string): Promise<void> {
@@ -226,10 +244,64 @@ export class InitCommand {
     }
   }
 
+  /**
+   * 為單一 AI 工具產生 skills 與 slash commands。
+   *
+   * - Skill：寫入 `<skillsDir>/skills/<dirName>/SKILL.md`。
+   * - Command：依 adapter 提供的相對路徑寫入（例如 `.claude/commands/oplg/<id>.md`）。
+   */
+  private async generateSkillsAndCommands(
+    projectPath: string,
+    tool: AIToolOption,
+  ): Promise<ToolGenerationSummary> {
+    let skillCount = 0;
+    let commandCount = 0;
+    const writtenPaths: string[] = [];
+
+    // 產生 skills（僅針對支援 Agent Skills 規範的工具，例如 Claude Code）。
+    if (tool.supportsSkills) {
+      const skillsRoot = path.join(projectPath, tool.skillsDir, 'skills');
+      const skillTemplates = getSkillTemplates();
+      for (const { template, dirName } of skillTemplates) {
+        const skillDir = path.join(skillsRoot, dirName);
+        const skillFile = path.join(skillDir, 'SKILL.md');
+        await fs.mkdir(skillDir, { recursive: true });
+        const content = generateSkillContent(template, OPENLOG_VERSION);
+        await fs.writeFile(skillFile, content, 'utf8');
+        skillCount += 1;
+        writtenPaths.push(path.relative(projectPath, skillFile));
+      }
+    }
+
+    // 產生 slash commands（依工具是否有對應 adapter 決定）。
+    const adapter = CommandAdapterRegistry.get(tool.value);
+    if (adapter) {
+      const commands = generateCommands(getCommandContents(), adapter);
+      for (const cmd of commands) {
+        const target = path.isAbsolute(cmd.path)
+          ? cmd.path
+          : path.join(projectPath, cmd.path);
+        await fs.mkdir(path.dirname(target), { recursive: true });
+        await fs.writeFile(target, cmd.fileContent, 'utf8');
+        commandCount += 1;
+        writtenPaths.push(path.relative(projectPath, target));
+      }
+    }
+
+    return {
+      tool,
+      skillCount,
+      commandCount,
+      writtenPaths,
+      hasCommandAdapter: Boolean(adapter),
+    };
+  }
+
   private printSummary(
     projectPath: string,
     openlogPath: string,
     selectedTools: AIToolOption[],
+    generatedSummaries: ToolGenerationSummary[],
   ): void {
     const rel = (target: string) => path.relative(projectPath, target) || '.';
     console.log();
@@ -241,11 +313,31 @@ export class InitCommand {
     if (selectedTools.length > 0) {
       console.log();
       console.log(chalk.bold('已建立的 AI 工具骨架：'));
-      for (const tool of selectedTools) {
-        console.log(`  • ${tool.skillsDir}/ — ${tool.name}`);
+      for (const summary of generatedSummaries) {
+        const { tool, skillCount, commandCount, hasCommandAdapter } = summary;
+        const parts: string[] = [];
+        if (tool.supportsSkills) {
+          parts.push(`${skillCount} skills`);
+        }
+        if (hasCommandAdapter) {
+          parts.push(`${commandCount} commands`);
+        }
+        const note = parts.length > 0 ? parts.join('、') : '無可產生內容';
+        console.log(`  • ${tool.skillsDir}/ — ${tool.name}（${note}）`);
+        for (const p of summary.writtenPaths) {
+          console.log(chalk.dim(`      ${p}`));
+        }
       }
       console.log();
-      console.log(chalk.dim('（commands / skills 將於後續版本補上）'));
+      console.log(chalk.dim('使用方式：在 AI 工具中執行 /oplg:apply <動作> 或 /oplg:record。'));
     }
   }
+}
+
+interface ToolGenerationSummary {
+  tool: AIToolOption;
+  skillCount: number;
+  commandCount: number;
+  writtenPaths: string[];
+  hasCommandAdapter: boolean;
 }

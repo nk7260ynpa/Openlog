@@ -14,17 +14,25 @@ AI-native logging companion CLI，仿照 [OpenSpec](https://github.com/Fission-A
 ```text
 Openlog/
 ├── bin/
-│   └── openlog.js          # CLI 進入點，require dist/cli/index.js
+│   └── openlog.js                          # CLI 進入點，require dist/cli/index.js
 ├── src/
-│   ├── index.ts            # 套件進入點（library 用法）
+│   ├── index.ts                            # 套件進入點（library 用法）
 │   ├── cli/
-│   │   └── index.ts        # commander 指令定義（--version、init）
+│   │   └── index.ts                        # commander 指令定義（--version、init）
 │   └── core/
-│       ├── config.ts       # AI 工具列表與常數（OPENLOG_DIR_NAME 等）
-│       └── init.ts         # InitCommand：建立 openlog/ 與工具骨架
-├── build.js                # 以 TypeScript compiler 產生 dist/
-├── tsconfig.json           # TS 設定（ES2022 / NodeNext / strict）
-├── package.json            # ESM、bin 註冊、scripts
+│       ├── config.ts                       # AI 工具列表與常數
+│       ├── init.ts                         # InitCommand：建立 openlog/ + skills/commands
+│       ├── templates/                      # Skill / slash command 內容（工具中立）
+│       │   ├── types.ts
+│       │   ├── workflows/apply.ts          # /oplg:apply 模板
+│       │   └── workflows/record.ts         # /oplg:record 模板
+│       ├── command-generation/             # 把模板轉成各 AI 工具檔案格式
+│       │   ├── adapters/claude.ts          # → .claude/commands/oplg/<id>.md
+│       │   └── adapters/github-copilot.ts  # → .github/prompts/oplg-<id>.prompt.md
+│       └── shared/                         # SkillTemplate 聚合 + frontmatter 產生
+├── build.js                                # 以 TypeScript compiler 產生 dist/
+├── tsconfig.json                           # TS 設定（ES2022 / NodeNext / strict）
+├── package.json                            # ESM、bin 註冊、scripts
 ├── .gitignore
 └── README.md
 ```
@@ -95,22 +103,38 @@ openlog init --force
 ```text
 my-project/
 ├── openlog/
-│   ├── specs/                # 規格文件
-│   ├── changes/              # 進行中的變更
-│   │   └── archive/          # 已完成歸檔
-│   └── project.md            # 專案介紹（自動產生）
-├── .claude/                  # 若選 Claude Code
-└── .github/                  # 若選 GitHub Copilot
+│   ├── specs/                       # 規格文件
+│   ├── changes/                     # 進行中的變更
+│   │   └── archive/                 # 已完成歸檔
+│   └── project.md                   # 專案介紹（自動產生）
+├── .claude/                         # 若選 Claude Code
+│   ├── skills/
+│   │   ├── openlog-apply/SKILL.md   # /oplg:apply 對應 skill
+│   │   └── openlog-record/SKILL.md  # /oplg:record 對應 skill
+│   └── commands/oplg/
+│       ├── apply.md                 # → /oplg:apply
+│       └── record.md                # → /oplg:record
+└── .github/                         # 若選 GitHub Copilot
+    └── prompts/
+        ├── oplg-apply.prompt.md
+        └── oplg-record.prompt.md
 ```
-
-> 目前 `.claude/` 與 `.github/` 僅建立空資料夾，commands / skills 會在後續版本補上。
 
 ### 支援的 AI 工具
 
-| 工具 | `--tools` 值 | 建立目錄 |
-|------|--------------|----------|
-| Claude Code | `claude` | `.claude/` |
-| GitHub Copilot | `github-copilot` | `.github/` |
+| 工具 | `--tools` 值 | 建立目錄 | Skills | Slash commands |
+|------|--------------|----------|--------|----------------|
+| Claude Code | `claude` | `.claude/` | ✅ | ✅ `/oplg:apply`, `/oplg:record` |
+| GitHub Copilot | `github-copilot` | `.github/` | ➖ | ✅ `oplg-*.prompt.md` |
+
+### Slash Commands
+
+`openlog init` 會自動安裝以下 slash commands 給選定的 AI 工具：
+
+| 指令 | 用途 |
+|------|------|
+| `/oplg:apply <要執行的動作>` | 依使用者敘述直接修改程式碼，包含計畫、編輯、本地驗證、總結。 |
+| `/oplg:record` | 把剛才修改的內容寫成文件記錄到 `openlog/changes/`，**標題由實際變更自動生成**（不需手動指定），並視情況同步更新 `README.md`、`openlog/project.md`、`openlog/specs/` 等內部文件。 |
 
 ## 開發指令
 
@@ -124,7 +148,7 @@ my-project/
 
 - [x] `openlog --version`
 - [x] `openlog init`：建立 `openlog/` 與選擇 AI 工具骨架
-- [ ] 為 `.claude/` 與 `.github/` 補上 commands / skills 內容
+- [x] 為 `.claude/` 與 `.github/` 補上 `/oplg:apply` 與 `/oplg:record` 的 commands / skills
 - [ ] 規格／變更管理子指令（list、validate、archive 等）
 
 ## 授權
