@@ -1,6 +1,6 @@
 {
   "name": "@chen/openlog",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "AI-native logging companion CLI",
   "keywords": [
     "openlog",
