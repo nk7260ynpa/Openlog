@@ -17,8 +17,11 @@ Openlog/
 │   └── openlog.js          # CLI 進入點，require dist/cli/index.js
 ├── src/
 │   ├── index.ts            # 套件進入點（library 用法）
-│   └── cli/
-│       └── index.ts        # commander 指令定義（含 --version）
+│   ├── cli/
+│   │   └── index.ts        # commander 指令定義（--version、init）
+│   └── core/
+│       ├── config.ts       # AI 工具列表與常數（OPENLOG_DIR_NAME 等）
+│       └── init.ts         # InitCommand：建立 openlog/ 與工具骨架
 ├── build.js                # 以 TypeScript compiler 產生 dist/
 ├── tsconfig.json           # TS 設定（ES2022 / NodeNext / strict）
 ├── package.json            # ESM、bin 註冊、scripts
@@ -64,19 +67,50 @@ pnpm add -g @chen/openlog@latest
 
 ## 使用方式
 
-目前僅支援版本顯示：
+### 顯示版本
 
 ```bash
-openlog --version
-# 或
-openlog -v
+openlog --version   # 或 -v
 ```
 
-預期輸出：
+### 初始化專案 `openlog init`
+
+於指定路徑（預設為當前目錄）建立 Openlog 工作目錄與 AI 工具骨架。
+
+```bash
+# 互動式選擇 AI 工具
+openlog init
+
+# 非互動指定（可選 all / none / 以逗號分隔）
+openlog init --tools claude
+openlog init ./my-project --tools claude,github-copilot
+openlog init --tools all
+
+# 已存在 openlog/ 時強制重新初始化
+openlog init --force
+```
+
+完成後會產生：
 
 ```text
-0.1.0
+my-project/
+├── openlog/
+│   ├── specs/                # 規格文件
+│   ├── changes/              # 進行中的變更
+│   │   └── archive/          # 已完成歸檔
+│   └── project.md            # 專案介紹（自動產生）
+├── .claude/                  # 若選 Claude Code
+└── .github/                  # 若選 GitHub Copilot
 ```
+
+> 目前 `.claude/` 與 `.github/` 僅建立空資料夾，commands / skills 會在後續版本補上。
+
+### 支援的 AI 工具
+
+| 工具 | `--tools` 值 | 建立目錄 |
+|------|--------------|----------|
+| Claude Code | `claude` | `.claude/` |
+| GitHub Copilot | `github-copilot` | `.github/` |
 
 ## 開發指令
 
@@ -89,9 +123,9 @@ openlog -v
 ## Roadmap
 
 - [x] `openlog --version`
-- [ ] `openlog --help`（commander 內建會自動產生）
-- [ ] `openlog init`：在當前專案初始化 log 設定
-- [ ] 後續更多功能持續規劃中
+- [x] `openlog init`：建立 `openlog/` 與選擇 AI 工具骨架
+- [ ] 為 `.claude/` 與 `.github/` 補上 commands / skills 內容
+- [ ] 規格／變更管理子指令（list、validate、archive 等）
 
 ## 授權
 
