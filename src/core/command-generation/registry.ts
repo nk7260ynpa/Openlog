@@ -1,5 +1,5 @@
 /**
- * 集中註冊各 AI 工具的 command adapter，供 init 流程依 toolId 取用。
+ * Central registry of per-tool command adapters, looked up by toolId during init.
  */
 
 import type { ToolCommandAdapter } from './types.js';

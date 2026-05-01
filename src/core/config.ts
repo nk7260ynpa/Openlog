@@ -5,14 +5,16 @@ export interface AIToolOption {
   value: string;
   available: boolean;
   /**
-   * 工具設定的根目錄（如 `.claude`、`.github`）。
+   * Root directory for the tool's configuration (e.g. `.claude`, `.github`).
    */
   skillsDir: string;
   /**
-   * 是否支援 Anthropic Agent Skills 規範。
+   * Whether the tool supports the Anthropic Agent Skills spec.
    *
-   * - `true`：在 `<skillsDir>/skills/<dir>/SKILL.md` 寫入 skill 檔（Claude Code）。
-   * - `false`：跳過 skills 檔，只寫 slash command／prompt 檔（GitHub Copilot 等）。
+   * - `true`: write a skill file at `<skillsDir>/skills/<dir>/SKILL.md`
+   *   (Claude Code).
+   * - `false`: skip the skill file and only write slash-command / prompt files
+   *   (GitHub Copilot, etc.).
    */
   supportsSkills: boolean;
 }

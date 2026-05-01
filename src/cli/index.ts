@@ -14,18 +14,18 @@ export function createProgram(): Command {
   program
     .name('openlog')
     .description('AI-native logging companion CLI')
-    .version(version, '-v, --version', '顯示 Openlog 目前版本');
+    .version(version, '-v, --version', 'Show the current Openlog version');
 
   const toolValues = AI_TOOLS.filter((tool) => tool.available)
     .map((tool) => tool.value)
     .join(', ');
-  const toolsOption = `非互動指定 AI 工具（可選 "all"、"none" 或以逗號分隔：${toolValues}）`;
+  const toolsOption = `Non-interactively select AI tools (use "all", "none", or a comma-separated list: ${toolValues})`;
 
   program
     .command('init [path]')
-    .description('於指定專案建立 openlog/ 結構與 AI 工具骨架資料夾')
+    .description('Create the openlog/ structure and AI-tool scaffolding folders in the target project')
     .option('--tools <tools>', toolsOption)
-    .option('--force', '即使 openlog/ 已存在仍重新初始化')
+    .option('--force', 'Re-initialize even if openlog/ already exists')
     .action(async (
       targetPath: string | undefined,
       options: { tools?: string; force?: boolean } = {},

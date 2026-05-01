@@ -1,7 +1,8 @@
 /**
- * 工具偵測常數。
+ * Tool detection constants.
  *
- * 主要用於 init 期間判斷既有 skills/commands 是否需要清理／補齊。
+ * Used during init to decide whether existing skills/commands need to be
+ * cleaned up or filled in.
  */
 
 export const SKILL_NAMES = ['openlog-apply', 'openlog-record'] as const;

@@ -1,125 +1,126 @@
 /**
- * `/oplg:record` 工作流：把剛才修改的內容寫成文件記錄到 `openlog/` 並視情況更新內部文件。
+ * `/oplg:record` workflow: turn the most recent changes into a documentation
+ * record under `openlog/` and update internal docs as needed.
  *
- * 產出：
- *   - Skill：`openlog-record`
- *   - Command：`/oplg:record`
+ * Outputs:
+ *   - Skill: `openlog-record`
+ *   - Command: `/oplg:record`
  */
 
 import type { SkillTemplate, CommandTemplate } from '../types.js';
 
-const SHARED_BODY = `把「剛才修改的內容」整理成一份文件記錄到專案的 \`openlog/\` 目錄，並視情況同步更新專案內部文件。
+const SHARED_BODY = `Turn the "most recent changes" into a documentation record under the project's \`openlog/\` directory, and update internal documentation as needed.
 
-**輸入**
+**Input**
 
-\`/oplg:record\` 不接任何參數。標題、slug、檔名皆由「實際變更內容」自動推斷。即使使用者在指令後寫了文字，也應將其視為**補充說明**而非標題覆寫——標題仍以變更本身為準。
+\`/oplg:record\` takes no arguments. Title, slug, and filename are inferred from the actual changes. Even if the user types text after the command, treat it as **supplementary context**, not a title override — the title still derives from the diff itself.
 
-**前置檢查**
+**Pre-flight checks**
 
-- 若專案根目錄沒有 \`openlog/\`：提示使用者先執行 \`openlog init\`，本指令終止。
-- 若 \`openlog/changes/\` 不存在：自動建立。
+- If there is no \`openlog/\` at the project root: prompt the user to run \`openlog init\` first and stop.
+- If \`openlog/changes/\` does not exist: create it automatically.
 
-**步驟**
+**Steps**
 
-1. **盤點要記錄的變更**
-   - 優先執行 \`git status --short\` 與 \`git diff --stat\` 確認有東西可記錄。
-   - 如目前尚未 commit：用 \`git diff\` 取得未提交差異作為主要素材。
-   - 如剛 commit 過：用 \`git log -1 --stat\` 與 \`git show HEAD\` 取得最近一次 commit 的變更。
-   - 若兩者皆空：詢問使用者要記錄哪一段（例如 commit hash 範圍 \`A..B\`），不要捏造內容。
-   - **也要納入**目前對話中已知但尚未 commit 的設計決策／取捨討論。
+1. **Inventory the changes to record**
+   - Start with \`git status --short\` and \`git diff --stat\` to confirm there is something to record.
+   - If nothing has been committed yet: use \`git diff\` for uncommitted changes as the primary material.
+   - If a commit just landed: use \`git log -1 --stat\` and \`git show HEAD\` for the latest commit.
+   - If both come up empty: ask the user which range to record (e.g. commit hash range \`A..B\`); do not fabricate content.
+   - **Also include** design decisions and trade-offs from the current conversation that have not been committed yet.
 
-2. **自動生成標題與檔案路徑**
+2. **Auto-generate title and file path**
 
-   標題從變更內容歸納，**禁止**要求使用者提供，也**禁止**直接用使用者在 \`/oplg:record\` 後輸入的字串當作標題。
+   Derive the title from the changes themselves. **Do not** ask the user for a title, and **do not** use whatever text follows \`/oplg:record\` as the title.
 
-   - **標題（繁體中文）**：一句話描述這次「做了什麼 + 影響的對象」，例：
-     - 「為 \`openlog init\` 新增 --dry-run 旗標」
-     - 「修正 \`/oplg:apply\` 在工作區乾淨時的 git 檢查邏輯」
-     - 若有合適的 conventional-commits 動詞（feat/fix/refactor/docs/test/chore），可放在 emoji 之後做為前綴提示。
-   - **slug（檔名用，英數＋連字號）**：把標題翻成精簡英文 slug，全小寫、kebab-case、最長約 6 個字。例：\`add-dry-run-to-init\`、\`fix-apply-clean-state-check\`。**避免中文檔名**。
-   - **路徑**：\`openlog/changes/<YYYY-MM-DD>-<slug>.md\`。同日同 slug 已存在時加序號 \`-2\`、\`-3\`，**不要**覆寫舊檔。
-   - 在報告中明確列出推斷出的標題與 slug，方便使用者後續若想改名手動 \`git mv\`。
+   - **Title (sentence describing the change)**: a single sentence covering "what was done + what it affects", e.g.:
+     - "Add --dry-run flag to \`openlog init\`"
+     - "Fix git check logic in \`/oplg:apply\` when working tree is clean"
+     - When fitting, prefix with a Conventional Commits verb (feat/fix/refactor/docs/test/chore).
+   - **slug (filename, alphanumeric + hyphen)**: distill the title into a concise English slug, lower-case, kebab-case, ~6 words max. Examples: \`add-dry-run-to-init\`, \`fix-apply-clean-state-check\`. **Avoid non-ASCII filenames.**
+   - **Path**: \`openlog/changes/<YYYY-MM-DD>-<slug>.md\`. If the same date+slug already exists, append \`-2\`, \`-3\`, etc.; **do not** overwrite an existing file.
+   - List the inferred title and slug in your report so the user can rename via \`git mv\` later if desired.
 
-3. **產生記錄檔**
+3. **Generate the record file**
 
-   檔案使用以下骨架（內文皆繁體中文，程式碼／路徑保留原文）：
+   Use the following skeleton (English content; keep code/paths verbatim):
 
    \`\`\`markdown
-   # <標題>
+   # <title>
 
-   - **日期：** YYYY-MM-DD
-   - **作者：** <git config user.name 或目前使用者>
-   - **相關 commit：** <如有，列 commit hash；無則寫「尚未提交」>
+   - **Date:** YYYY-MM-DD
+   - **Author:** <git config user.name or current user>
+   - **Related commit:** <commit hash if any; otherwise "uncommitted">
 
-   ## 摘要
+   ## Summary
 
-   一段話描述這次改了什麼、為何這樣改。
+   One paragraph describing what changed and why.
 
-   ## 動機 / 背景
+   ## Motivation / context
 
-   為什麼需要這次變更（bug、需求、技術債、實驗等）。
+   Why this change is needed (bug, requirement, tech debt, experiment, ...).
 
-   ## 主要變更
+   ## Key changes
 
-   - \`path/to/file.ts\`：<簡述>
-   - \`path/to/other.ts\`：<簡述>
+   - \`path/to/file.ts\`: <one-line summary>
+   - \`path/to/other.ts\`: <one-line summary>
 
-   ## 影響範圍
+   ## Impact
 
-   - 哪些功能 / 模組會被影響？是否有 breaking change？
+   - Which features / modules are affected? Any breaking changes?
 
-   ## 驗證
+   ## Verification
 
-   - 執行了什麼測試 / 構建 / 手動操作來確認。
-   - 結果。
+   - Tests / builds / manual steps performed.
+   - Outcome.
 
-   ## 後續工作
+   ## Follow-ups
 
-   - [ ] 待辦 1
-   - [ ] 待辦 2
+   - [ ] TODO 1
+   - [ ] TODO 2
    \`\`\`
 
-4. **同步內部文件（視情況）**
+4. **Sync internal docs (when applicable)**
 
-   依變更內容，**主動**判斷以下檔案是否需要更新；若需要，逐一更新並在最終報告列出：
+   Based on the change, **proactively** decide whether the following files need updates; if so, update them and list each one in the final report:
 
-   - \`README.md\`：若新增/移除 CLI 指令、API、安裝步驟、依賴，需更新。
-   - \`openlog/project.md\`：若技術棧、目錄結構、流程改變，需更新對應段落。
-   - \`openlog/specs/\` 內既有 spec：若實作偏離原 spec，需更新或新增 spec。
-   - \`CHANGELOG.md\`（若存在）：依專案既有風格新增條目。
-   - \`CLAUDE.md\`（若存在且為團隊共享版）：只有當變更影響 AI 協作流程或慣例才動。
-   - **不要動**使用者全域 \`~/.claude/CLAUDE.md\`。
+   - \`README.md\`: update when CLI commands, public APIs, install steps, or dependencies change.
+   - \`openlog/project.md\`: update when the tech stack, layout, or workflow changes.
+   - Existing specs under \`openlog/specs/\`: update or add a spec when the implementation diverges.
+   - \`CHANGELOG.md\` (if present): add an entry following the project's existing style.
+   - \`CLAUDE.md\` (if present and team-shared): only touch when the change affects AI collaboration workflows or conventions.
+   - **Do not** modify the user's global \`~/.claude/CLAUDE.md\`.
 
-   每一項更新都用最小 diff，不要重寫整份文件。
+   Use minimal diffs for each update; do not rewrite whole documents.
 
-5. **總結報告**
+5. **Summary report**
 
-   產出簡短條列：
-   - 新增的記錄檔路徑（連結）。
-   - 更新的內部文件清單（含一句話原因）。
-   - 若有任何被略過或不確定要不要動的文件，明確列出讓使用者決定。
+   Produce a short bulleted summary:
+   - Path of the new record file (link).
+   - List of updated internal docs (one-line reason each).
+   - Any files you skipped or were unsure about, so the user can decide.
 
-**護欄**
+**Guardrails**
 
-- 不要自行執行 \`git commit\` 或 \`git push\`，除非使用者要求。
-- 記錄檔內容必須來自實際 diff／commit／對話事實，**禁止**捏造程式碼變更或測試結果。
-- 若 \`openlog/changes/\` 內已存在同名檔且內容不同：以加序號的方式建立新檔，**不要**覆蓋舊檔。
-- 內部文件若不確定該不該動，列在報告的「待使用者決定」區塊，不要硬改。
+- Do not run \`git commit\` or \`git push\` on your own unless the user asks.
+- Record content must come from real diffs / commits / conversation facts; **do not** fabricate code changes or test results.
+- If a same-named file already exists in \`openlog/changes/\` with different content: create a new file with a numeric suffix; **do not** overwrite the existing one.
+- For internal docs you are unsure about, list them in a "needs user decision" section instead of forcing a change.
 
-**輸出格式範例**
+**Output format example**
 
 \`\`\`
-## /oplg:record 完成
+## /oplg:record done
 
-### 新增
+### New
 - openlog/changes/2026-05-01-add-dry-run-flag.md
 
-### 更新
-- README.md：補上 \`--dry-run\` 用法
-- openlog/project.md：開發指令段落新增 dry-run 說明
+### Updated
+- README.md: documented \`--dry-run\` usage
+- openlog/project.md: added dry-run note in the dev commands section
 
-### 待使用者決定
-- 是否需要在 \`openlog/specs/\` 新增 init 旗標規格？
+### Needs user decision
+- Should we add an init-flags spec under \`openlog/specs/\`?
 \`\`\`
 `;
 
@@ -127,7 +128,7 @@ export function getRecordSkillTemplate(): SkillTemplate {
   return {
     name: 'openlog-record',
     description:
-      '把剛才修改的程式碼整理成文件記錄到 openlog/，標題由變更內容自動生成，並視情況更新 README、project.md、specs 等內部文件。當使用者執行 /oplg:record 或要求「幫我把這次修改記錄下來」時觸發。',
+      "Turn the most recent code changes into a record under openlog/, with the title auto-derived from the diff, and update README, project.md, and specs as needed. Triggers when the user runs /oplg:record or asks to \"log this change\".",
     instructions: SHARED_BODY,
     license: 'MIT',
     compatibility: 'Requires openlog CLI and an initialized openlog/ directory.',
@@ -138,7 +139,7 @@ export function getRecordSkillTemplate(): SkillTemplate {
 export function getOplgRecordCommandTemplate(): CommandTemplate {
   return {
     name: 'OPLG: Record',
-    description: '把剛才修改的內容寫成文件記錄到 openlog/，標題由變更自動生成（用法：/oplg:record，不接參數）',
+    description: 'Write a record of recent changes to openlog/, with the title auto-derived (usage: /oplg:record, no arguments)',
     category: 'Workflow',
     tags: ['workflow', 'record', 'openlog'],
     content: SHARED_BODY,

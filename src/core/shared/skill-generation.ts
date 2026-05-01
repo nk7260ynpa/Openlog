@@ -1,10 +1,11 @@
 /**
- * Skill / command 產生工具。
+ * Skill / command generation utilities.
  *
- * 提供：
- *   - `getSkillTemplates()`：所有 skill 模板與其輸出目錄。
- *   - `getCommandTemplates()` / `getCommandContents()`：所有 command 模板。
- *   - `generateSkillContent()`：把 SkillTemplate 包成帶 frontmatter 的 SKILL.md。
+ * Provides:
+ *   - `getSkillTemplates()`: all skill templates with their output directories.
+ *   - `getCommandTemplates()` / `getCommandContents()`: all command templates.
+ *   - `generateSkillContent()`: wrap a SkillTemplate into a SKILL.md with
+ *     YAML frontmatter.
  */
 
 import {
@@ -18,27 +19,29 @@ import {
 import type { CommandContent } from '../command-generation/index.js';
 
 /**
- * Skill 模板與其在 `<aiTool>/skills/` 下的目錄名。
+ * A skill template plus its directory name under `<aiTool>/skills/`.
  */
 export interface SkillTemplateEntry {
   template: SkillTemplate;
   /**
-   * Skill 目錄名（如 `openlog-apply`），對應 `.claude/skills/<dirName>/SKILL.md`。
+   * Skill directory name (e.g. `openlog-apply`), corresponds to
+   * `.claude/skills/<dirName>/SKILL.md`.
    */
   dirName: string;
   /**
-   * Workflow 識別碼（如 `apply`），與 command id 對齊。
+   * Workflow identifier (e.g. `apply`); aligned with the command id.
    */
   workflowId: string;
 }
 
 /**
- * Command 模板與其識別碼。
+ * A command template plus its identifier.
  */
 export interface CommandTemplateEntry {
   template: CommandTemplate;
   /**
-   * Command id（如 `apply`），對應 `/oplg:<id>` 與 `.claude/commands/oplg/<id>.md`。
+   * Command id (e.g. `apply`); maps to `/oplg:<id>` and
+   * `.claude/commands/oplg/<id>.md`.
    */
   id: string;
 }
@@ -77,10 +80,12 @@ export function getCommandContents(): CommandContent[] {
 }
 
 /**
- * 將 SkillTemplate 轉成完整 SKILL.md 內容（含 YAML frontmatter）。
+ * Convert a SkillTemplate into the full SKILL.md body (YAML frontmatter
+ * included).
  *
- * @param template Skill 模板。
- * @param generatedByVersion 寫入 `metadata.generatedBy` 的版本字串（通常是 Openlog CLI 版本）。
+ * @param template The skill template.
+ * @param generatedByVersion Version string written to `metadata.generatedBy`
+ *   (typically the Openlog CLI version).
  */
 export function generateSkillContent(
   template: SkillTemplate,

@@ -1,5 +1,5 @@
 /**
- * Adapter 匯出聚合。
+ * Aggregated adapter exports.
  */
 
 export { claudeAdapter } from './claude.js';

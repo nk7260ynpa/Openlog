@@ -1,5 +1,5 @@
 /**
- * Command 產生模組對外匯出。
+ * Public exports for the command generation module.
  */
 
 export type {

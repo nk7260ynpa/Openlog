@@ -1,7 +1,8 @@
 /**
- * GitHub Copilot adapter：產出 `.github/prompts/oplg-<id>.prompt.md`。
+ * GitHub Copilot adapter: produces `.github/prompts/oplg-<id>.prompt.md`.
  *
- * 使用 GitHub Copilot prompt files 規範，僅 frontmatter 中保留 `description`。
+ * Follows the GitHub Copilot prompt-files spec; only `description` is kept in
+ * the frontmatter.
  */
 
 import path from 'path';

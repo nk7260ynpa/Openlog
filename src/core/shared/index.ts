@@ -1,5 +1,5 @@
 /**
- * Shared 模組匯出。
+ * Shared module exports.
  */
 
 export {

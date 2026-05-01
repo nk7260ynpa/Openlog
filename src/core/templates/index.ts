@@ -1,5 +1,5 @@
 /**
- * Skill 與 slash command 模板的匯出聚合。
+ * Aggregated exports for skill and slash command templates.
  */
 
 export type { SkillTemplate, CommandTemplate } from './types.js';

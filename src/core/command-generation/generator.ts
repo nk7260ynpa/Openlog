@@ -1,5 +1,5 @@
 /**
- * 將工具中立的 `CommandContent` 透過 adapter 轉成最終檔案內容。
+ * Convert tool-neutral `CommandContent` into final file content via an adapter.
  */
 
 import type {

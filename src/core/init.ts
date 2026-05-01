@@ -1,10 +1,10 @@
 /**
- * Openlog Init 指令
+ * Openlog Init command.
  *
- * 仿照 OpenSpec 的 InitCommand，於指定專案路徑建立：
- *   1. AI 工具骨架資料夾（.claude / .github 等）
- *   2. openlog/ 目錄與其下 specs/、changes/、changes/archive/
- *   3. openlog/project.md（專案介紹檔）
+ * Modeled after OpenSpec's InitCommand. Given a target project path it creates:
+ *   1. AI-tool scaffolding folders (.claude / .github / ...)
+ *   2. The openlog/ directory with specs/, changes/, changes/archive/
+ *   3. openlog/project.md (project overview file)
  */
 
 import path from 'path';
@@ -30,12 +30,12 @@ const { version: OPENLOG_VERSION } = require('../../package.json') as { version:
 
 export interface InitCommandOptions {
   /**
-   * 以逗號分隔的工具 value 列表（非互動模式使用）。
-   * 例：'claude' 或 'claude,github-copilot' 或 'all'。
+   * Comma-separated list of tool values (used in non-interactive mode).
+   * Examples: 'claude', 'claude,github-copilot', 'all'.
    */
   tools?: string;
   /**
-   * 強制覆寫已存在的 openlog/ 結構。
+   * Force-overwrite an existing openlog/ structure.
    */
   force?: boolean;
 }
@@ -57,41 +57,41 @@ export class InitCommand {
 
     const selectedTools = await this.resolveSelectedTools();
     if (selectedTools.length === 0) {
-      console.log(chalk.yellow('⚠ 未選擇任何 AI 工具，僅建立 openlog/ 目錄。'));
+      console.log(chalk.yellow('⚠ No AI tools selected; only the openlog/ directory will be created.'));
     }
 
-    const structureSpinner = ora('建立 openlog/ 目錄結構…').start();
+    const structureSpinner = ora('Creating openlog/ directory structure...').start();
     try {
       await this.createOpenlogStructure(openlogPath);
-      structureSpinner.succeed(chalk.green(`已建立 ${path.relative(projectPath, openlogPath) || OPENLOG_DIR_NAME}/ 結構`));
+      structureSpinner.succeed(chalk.green(`Created ${path.relative(projectPath, openlogPath) || OPENLOG_DIR_NAME}/ structure`));
     } catch (error) {
-      structureSpinner.fail('建立 openlog/ 目錄失敗');
+      structureSpinner.fail('Failed to create openlog/ directory');
       throw error;
     }
 
     const projectMdPath = path.join(openlogPath, 'project.md');
-    const projectMdSpinner = ora('產生 openlog/project.md…').start();
+    const projectMdSpinner = ora('Generating openlog/project.md...').start();
     try {
       await this.createProjectMd(projectMdPath, projectPath);
-      projectMdSpinner.succeed(chalk.green('已產生 openlog/project.md'));
+      projectMdSpinner.succeed(chalk.green('Generated openlog/project.md'));
     } catch (error) {
-      projectMdSpinner.fail('產生 project.md 失敗');
+      projectMdSpinner.fail('Failed to generate project.md');
       throw error;
     }
 
     const generatedSummaries: ToolGenerationSummary[] = [];
     for (const tool of selectedTools) {
-      const spinner = ora(`設定 ${tool.name} (${tool.skillsDir}/)…`).start();
+      const spinner = ora(`Configuring ${tool.name} (${tool.skillsDir}/)...`).start();
       try {
         const summary = await this.generateSkillsAndCommands(projectPath, tool);
         generatedSummaries.push(summary);
         spinner.succeed(
           chalk.green(
-            `已設定 ${tool.name}：${summary.skillCount} 個 skill、${summary.commandCount} 個 command`,
+            `Configured ${tool.name}: ${summary.skillCount} skill(s), ${summary.commandCount} command(s)`,
           ),
         );
       } catch (error) {
-        spinner.fail(`設定 ${tool.name} 失敗`);
+        spinner.fail(`Failed to configure ${tool.name}`);
         throw error;
       }
     }
@@ -103,7 +103,7 @@ export class InitCommand {
     try {
       const stats = await fs.stat(projectPath);
       if (!stats.isDirectory()) {
-        throw new Error(`Path "${projectPath}" 不是資料夾。`);
+        throw new Error(`Path "${projectPath}" is not a directory.`);
       }
     } catch (error) {
       const err = error as NodeJS.ErrnoException;
@@ -146,14 +146,14 @@ export class InitCommand {
     }
     if (unknown.length > 0) {
       const known = AI_TOOLS.map((tool) => tool.value).join(', ');
-      throw new Error(`未知的工具：${unknown.join(', ')}（可用：${known}、all、none）`);
+      throw new Error(`Unknown tools: ${unknown.join(', ')} (available: ${known}, all, none)`);
     }
     return selected;
   }
 
   private async promptToolSelection(): Promise<AIToolOption[]> {
     if (!process.stdout.isTTY) {
-      throw new Error('非互動環境，請以 --tools 指定要設定的工具（例如 --tools claude）。');
+      throw new Error('Non-interactive environment: please specify tools with --tools (e.g. --tools claude).');
     }
 
     const choices = AI_TOOLS.filter((tool) => tool.available).map((tool) => ({
@@ -163,7 +163,7 @@ export class InitCommand {
     }));
 
     const selectedValues = await checkbox<string>({
-      message: '選擇要套用 Openlog 設定的 AI 工具：',
+      message: 'Select the AI tools to configure with Openlog:',
       choices,
     });
 
@@ -178,7 +178,7 @@ export class InitCommand {
       const hasContent = (await fs.readdir(openlogPath)).length > 0;
       if (hasContent) {
         throw new Error(
-          `${OPENLOG_DIR_NAME}/ 已存在且非空。如需重新初始化請使用 --force。`,
+          `${OPENLOG_DIR_NAME}/ already exists and is not empty. Use --force to re-initialize.`,
         );
       }
     }
@@ -203,33 +203,33 @@ export class InitCommand {
     const projectName = path.basename(projectPath);
     const content = `# ${projectName}
 
-> 由 \`openlog init\` 產生。請依實際情況維護本檔。
+> Generated by \`openlog init\`. Please maintain this file as needed.
 
-## 專案概要
+## Overview
 
-請在此說明本專案的目標、範圍與目標使用者。
+Describe the project's goals, scope, and target users here.
 
-## 主要內容
+## Layout
 
-- **\`${OPENLOG_DIR_NAME}/specs/\`**：規格（spec）資料夾，存放穩定的需求／規格文件。
-- **\`${OPENLOG_DIR_NAME}/changes/\`**：進行中的變更提案資料夾。
-- **\`${OPENLOG_DIR_NAME}/changes/archive/\`**：已完成並歸檔的變更。
-- **\`${OPENLOG_DIR_NAME}/project.md\`**（本檔）：專案總覽與導覽入口。
+- **\`${OPENLOG_DIR_NAME}/specs/\`**: spec folder for stable requirements and specification documents.
+- **\`${OPENLOG_DIR_NAME}/changes/\`**: in-flight change proposals.
+- **\`${OPENLOG_DIR_NAME}/changes/archive/\`**: completed and archived changes.
+- **\`${OPENLOG_DIR_NAME}/project.md\`** (this file): project overview and entry point.
 
-## 技術棧
+## Tech stack
 
-- 在此列出本專案使用的程式語言、框架與工具。
+- List the languages, frameworks, and tools used by this project.
 
-## 開發流程
+## Development workflow
 
-1. 透過 \`openlog\` CLI 管理規格與變更（後續版本提供）。
-2. 變更從 \`${OPENLOG_DIR_NAME}/changes/\` 出發，完成後歸檔到 \`${OPENLOG_DIR_NAME}/changes/archive/\`。
+1. Manage specs and changes through the \`openlog\` CLI (coming in later versions).
+2. New changes start in \`${OPENLOG_DIR_NAME}/changes/\` and are moved to \`${OPENLOG_DIR_NAME}/changes/archive/\` once complete.
 
-## 後續工作
+## Next steps
 
-- [ ] 補上專案介紹與技術棧
-- [ ] 撰寫第一份規格於 \`${OPENLOG_DIR_NAME}/specs/\`
-- [ ] 規劃第一個變更於 \`${OPENLOG_DIR_NAME}/changes/\`
+- [ ] Fill in the project overview and tech stack
+- [ ] Author the first spec under \`${OPENLOG_DIR_NAME}/specs/\`
+- [ ] Plan the first change under \`${OPENLOG_DIR_NAME}/changes/\`
 `;
 
     await fs.writeFile(projectMdPath, content, 'utf8');
@@ -245,10 +245,11 @@ export class InitCommand {
   }
 
   /**
-   * 為單一 AI 工具產生 skills 與 slash commands。
+   * Generate skills and slash commands for a single AI tool.
    *
-   * - Skill：寫入 `<skillsDir>/skills/<dirName>/SKILL.md`。
-   * - Command：依 adapter 提供的相對路徑寫入（例如 `.claude/commands/oplg/<id>.md`）。
+   * - Skill: written to `<skillsDir>/skills/<dirName>/SKILL.md`.
+   * - Command: written to the relative path provided by the adapter
+   *   (e.g. `.claude/commands/oplg/<id>.md`).
    */
   private async generateSkillsAndCommands(
     projectPath: string,
@@ -258,7 +259,7 @@ export class InitCommand {
     let commandCount = 0;
     const writtenPaths: string[] = [];
 
-    // 產生 skills（僅針對支援 Agent Skills 規範的工具，例如 Claude Code）。
+    // Generate skills (only for tools that support the Agent Skills spec, e.g. Claude Code).
     if (tool.supportsSkills) {
       const skillsRoot = path.join(projectPath, tool.skillsDir, 'skills');
       const skillTemplates = getSkillTemplates();
@@ -273,7 +274,7 @@ export class InitCommand {
       }
     }
 
-    // 產生 slash commands（依工具是否有對應 adapter 決定）。
+    // Generate slash commands (gated on whether the tool has a registered adapter).
     const adapter = CommandAdapterRegistry.get(tool.value);
     if (adapter) {
       const commands = generateCommands(getCommandContents(), adapter);
@@ -305,14 +306,14 @@ export class InitCommand {
   ): void {
     const rel = (target: string) => path.relative(projectPath, target) || '.';
     console.log();
-    console.log(chalk.bold('Openlog 初始化完成 🎉'));
+    console.log(chalk.bold('Openlog initialization complete 🎉'));
     console.log(`  • ${rel(openlogPath)}/specs/`);
     console.log(`  • ${rel(openlogPath)}/changes/`);
     console.log(`  • ${rel(openlogPath)}/changes/archive/`);
     console.log(`  • ${rel(path.join(openlogPath, 'project.md'))}`);
     if (selectedTools.length > 0) {
       console.log();
-      console.log(chalk.bold('已建立的 AI 工具骨架：'));
+      console.log(chalk.bold('AI tool scaffolding created:'));
       for (const summary of generatedSummaries) {
         const { tool, skillCount, commandCount, hasCommandAdapter } = summary;
         const parts: string[] = [];
@@ -322,14 +323,14 @@ export class InitCommand {
         if (hasCommandAdapter) {
           parts.push(`${commandCount} commands`);
         }
-        const note = parts.length > 0 ? parts.join('、') : '無可產生內容';
-        console.log(`  • ${tool.skillsDir}/ — ${tool.name}（${note}）`);
+        const note = parts.length > 0 ? parts.join(', ') : 'nothing to generate';
+        console.log(`  • ${tool.skillsDir}/ — ${tool.name} (${note})`);
         for (const p of summary.writtenPaths) {
           console.log(chalk.dim(`      ${p}`));
         }
       }
       console.log();
-      console.log(chalk.dim('使用方式：在 AI 工具中執行 /oplg:apply <動作> 或 /oplg:record。'));
+      console.log(chalk.dim('Usage: run /oplg:apply <action> or /oplg:record inside your AI tool.'));
     }
   }
 }

@@ -1,7 +1,7 @@
 /**
- * Claude Code adapter：產出 `.claude/commands/oplg/<id>.md`。
+ * Claude Code adapter: produces `.claude/commands/oplg/<id>.md`.
  *
- * Frontmatter 欄位：name / description / category / tags。
+ * Frontmatter fields: name / description / category / tags.
  */
 
 import path from 'path';
@@ -9,7 +9,8 @@ import path from 'path';
 import type { CommandContent, ToolCommandAdapter } from '../types.js';
 
 /**
- * 將任意字串轉成 YAML 安全字面值；遇到特殊字元使用雙引號跳脫。
+ * Convert an arbitrary string into a YAML-safe literal, double-quoting and
+ * escaping when special characters are present.
  */
 function escapeYamlValue(value: string): string {
   const needsQuoting = /[:\n\r#{}[\],&*!|>'"%@`]|^\s|\s$/.test(value);
