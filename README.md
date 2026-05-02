@@ -18,10 +18,11 @@ Openlog/
 ├── src/
 │   ├── index.ts                            # Library entry point
 │   ├── cli/
-│   │   └── index.ts                        # commander definitions (--version, init)
+│   │   └── index.ts                        # commander definitions (--version, init, update)
 │   └── core/
 │       ├── config.ts                       # AI tool list and constants
 │       ├── init.ts                         # InitCommand: create openlog/ + skills/commands
+│       ├── update.ts                       # UpdateCommand: re-install latest source globally
 │       ├── templates/                      # Skill / slash command bodies (tool-neutral)
 │       │   ├── types.ts
 │       │   ├── workflows/apply.ts          # /oplg:apply template
