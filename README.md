@@ -138,8 +138,7 @@ The result looks like:
 my-project/
 ├── openlog/
 │   ├── specs/                       # Spec documents
-│   ├── changes/                     # In-flight changes
-│   │   └── archive/                 # Completed and archived
+│   ├── changes/                     # Change records
 │   └── project.md                   # Project overview (auto-generated)
 ├── .claude/                         # When Claude Code is selected
 │   ├── skills/

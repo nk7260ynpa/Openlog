@@ -3,7 +3,7 @@
  *
  * Modeled after OpenSpec's InitCommand. Given a target project path it creates:
  *   1. AI-tool scaffolding folders (.claude / .github / ...)
- *   2. The openlog/ directory with specs/, changes/, changes/archive/
+ *   2. The openlog/ directory with specs/, changes/
  *   3. openlog/project.md (project overview file)
  */
 
@@ -194,7 +194,6 @@ export class InitCommand {
       openlogPath,
       path.join(openlogPath, 'specs'),
       path.join(openlogPath, 'changes'),
-      path.join(openlogPath, 'changes', 'archive'),
     ];
     for (const dir of directories) {
       await fs.mkdir(dir, { recursive: true });
@@ -221,8 +220,7 @@ Describe the project's goals, scope, and target users here.
 ## Layout
 
 - **\`${OPENLOG_DIR_NAME}/specs/\`**: spec folder for stable requirements and specification documents.
-- **\`${OPENLOG_DIR_NAME}/changes/\`**: in-flight change proposals.
-- **\`${OPENLOG_DIR_NAME}/changes/archive/\`**: completed and archived changes.
+- **\`${OPENLOG_DIR_NAME}/changes/\`**: change records authored by the workflow.
 - **\`${OPENLOG_DIR_NAME}/project.md\`** (this file): project overview and entry point.
 
 ## Tech stack
@@ -232,7 +230,7 @@ Describe the project's goals, scope, and target users here.
 ## Development workflow
 
 1. Manage specs and changes through the \`openlog\` CLI (coming in later versions).
-2. New changes start in \`${OPENLOG_DIR_NAME}/changes/\` and are moved to \`${OPENLOG_DIR_NAME}/changes/archive/\` once complete.
+2. New change records land in \`${OPENLOG_DIR_NAME}/changes/\` via \`/oplg:record\`.
 
 ## Next steps
 
@@ -346,7 +344,6 @@ Describe the project's goals, scope, and target users here.
     console.log(chalk.bold(headline));
     console.log(`  • ${rel(openlogPath)}/specs/`);
     console.log(`  • ${rel(openlogPath)}/changes/`);
-    console.log(`  • ${rel(openlogPath)}/changes/archive/`);
     console.log(`  • ${rel(path.join(openlogPath, 'project.md'))}`);
     if (selectedTools.length > 0) {
       console.log();

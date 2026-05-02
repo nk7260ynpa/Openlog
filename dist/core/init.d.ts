@@ -3,7 +3,7 @@
  *
  * Modeled after OpenSpec's InitCommand. Given a target project path it creates:
  *   1. AI-tool scaffolding folders (.claude / .github / ...)
- *   2. The openlog/ directory with specs/, changes/, changes/archive/
+ *   2. The openlog/ directory with specs/, changes/
  *   3. openlog/project.md (project overview file)
  */
 export interface InitCommandOptions {
