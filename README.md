@@ -2,7 +2,7 @@
 
 AI-native logging companion CLI, built on the same TypeScript + Node.js stack as [OpenSpec](https://github.com/Fission-AI/OpenSpec).
 
-> The current release implements `openlog --version` and `openlog init`. More commands will follow.
+> The current release implements `openlog --version`, `openlog init`, and `openlog update`. More commands will follow.
 
 ## Requirements
 
@@ -156,6 +156,43 @@ my-project/
 | Claude Code | `claude` | `.claude/` | ✅ | ✅ `/oplg:apply`, `/oplg:record` |
 | GitHub Copilot | `github-copilot` | `.github/` | ➖ | ✅ `oplg-*.prompt.md` |
 
+### Update to the latest version: `openlog update`
+
+Auto-update the globally-installed `openlog` CLI by cloning the latest source
+and reinstalling globally. This follows the recommended install path (clone
++ `npm i -g <path>`) because `npm i -g github:...` is unreliable on npm 11.
+
+```bash
+# Update to the latest version on the main branch
+openlog update
+
+# Just check whether a newer version is available, without installing
+openlog update --check
+
+# Install a specific tag, branch, or commit
+openlog update --ref v0.4.0
+
+# Reinstall from an existing local clone (skip the network clone)
+openlog update --source /tmp/openlog
+
+# Reinstall even if the local version already matches the latest
+openlog update --force
+
+# Use a different package manager for the global install
+openlog update --npm pnpm
+```
+
+Available flags:
+
+| Flag | Purpose |
+|------|---------|
+| `--check` | Print "current vs latest" only; do not install. |
+| `--force` | Reinstall even when the version is already up to date. |
+| `--ref <ref>` | Git ref (branch / tag / commit) to install from. Defaults to `main`. |
+| `--source <path>` | Reinstall from an existing local clone instead of cloning. |
+| `--npm <bin>` | npm-compatible binary used for the global install. Defaults to `npm`. |
+| `--repo <url>` | Override the git remote URL. Defaults to the public Openlog repo. |
+
 ### Slash commands
 
 `openlog init` installs the following slash commands for the selected AI tools:
@@ -178,6 +215,7 @@ my-project/
 - [x] `openlog --version`
 - [x] `openlog init`: create `openlog/` and pick AI-tool scaffolding
 - [x] Install `/oplg:apply` and `/oplg:record` commands / skills under `.claude/` and `.github/`
+- [x] `openlog update`: auto-update the globally-installed CLI from GitHub
 - [ ] Spec / change management subcommands (list, validate, archive, ...)
 
 ## License

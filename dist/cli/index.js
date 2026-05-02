@@ -35,6 +35,34 @@ export function createProgram() {
             process.exit(1);
         }
     });
+    program
+        .command('update')
+        .description('Update the globally-installed openlog CLI to the latest version')
+        .option('--check', 'Only check for a newer version; do not install')
+        .option('--force', 'Reinstall even if the local version already matches the latest')
+        .option('--ref <ref>', 'Git ref (branch / tag / commit) to install from (default: main)')
+        .option('--source <path>', 'Reinstall from an existing local clone instead of cloning')
+        .option('--npm <bin>', 'npm-compatible binary to use for the global install (default: npm)')
+        .option('--repo <url>', 'Override the git remote URL (default: the public Openlog repo)')
+        .action(async (options = {}) => {
+        try {
+            const { UpdateCommand } = await import('../core/update.js');
+            const updateCommand = new UpdateCommand({
+                check: options.check,
+                force: options.force,
+                ref: options.ref,
+                source: options.source,
+                npm: options.npm,
+                repo: options.repo,
+            });
+            await updateCommand.execute();
+        }
+        catch (error) {
+            console.log();
+            ora().fail(`Error: ${error.message}`);
+            process.exit(1);
+        }
+    });
     return program;
 }
 const program = createProgram();
