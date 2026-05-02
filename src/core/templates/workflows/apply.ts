@@ -19,7 +19,7 @@ Everything after \`/oplg:apply <action>\` is the action description. If the desc
 
 1. **Interpret the action**
    - Translate the action description into a concrete edit plan: which files to touch, what to add/change/remove, and whether new tests are needed.
-   - If the description contains multiple sub-tasks, list the plan in your reply and execute them one by one.
+   - If the description contains multiple sub-tasks ("entries"), list the plan in your reply and execute them **one entry at a time**, looping through steps 3–6 per entry.
    - If the action depends on locally-disabled dependencies or external services, check whether you can proceed; otherwise stop and report.
 
 2. **Survey the current state**
@@ -27,48 +27,34 @@ Everything after \`/oplg:apply <action>\` is the action description. If the desc
    - If the working tree is clean: start editing immediately.
    - If there are uncommitted changes: briefly summarize them first, then proceed; do not discard existing changes unless the user asked you to.
 
-3. **Modify the code**
+3. **Modify the code (per entry)**
    - Use Read → Edit/Write to change the relevant files.
-   - Keep the scope minimal: only touch files related to the action; do not refactor neighboring code on the side.
+   - Keep the scope minimal: only touch files related to the current entry; do not refactor neighboring code on the side.
    - Comments and messages follow the existing file's language convention.
-   - If the task requires new tests or updates to existing ones, **complete those in this step too**.
+   - If the entry requires new tests or updates to existing ones, **complete those in this step too**.
 
-4. **Local verification**
+4. **Update README.md (per entry)**
+   - If the entry affects user-facing CLI commands, install steps, public APIs, configuration, or dependencies, update \`README.md\` with a minimal diff to keep it in sync.
+   - If the entry is internal-only (refactoring, internal helpers, comments), explicitly skip this step and note "no README change needed".
+
+5. **Local verification (per entry)**
    - If the project has a fast check command (\`pnpm run build\`, \`npm test\`, \`pytest\`, \`tsc --noEmit\`, ...), run the most relevant one.
    - If the build/test fails: try to fix it; if you cannot fix it after a couple of attempts, stop and paste the full error to the user instead of forcing a workaround.
 
-5. **Summary report**
-   - Provide a short bulleted summary covering:
-     - Which files changed (with paths)
-     - Why the change was made
-     - Any recommended follow-ups (e.g. the user should run e2e manually, or there are TODOs to track)
-   - End with a suggestion: if the user wants to log this change, run \`/oplg:record\`.
+6. **Commit and push (per entry)**
+   - Stage the files modified for the current entry (source + README + any rebuilt artifacts such as \`dist/\`).
+   - Create a commit using Conventional Commits (\`feat\`, \`fix\`, \`docs\`, \`refactor\`, \`chore\`, \`test\`, ...) and the project's existing commit-message style.
+   - Run \`git push\` to the current branch's existing upstream.
+   - Do **not** batch multiple entries into one commit; one entry → one commit → one push.
+   - If \`git push\` fails (no upstream, network error, non-fast-forward rejection), stop and report; do not force-push.
+   - After the push succeeds, move on to the next entry and repeat steps 3–6.
 
 **Guardrails**
 
-- Do not run destructive git operations automatically (reset --hard, push --force, branch deletion). Confirm before committing unless the user explicitly asked.
-- Do not touch files outside the task scope (e.g. README, CLAUDE.md, settings.json). If you discover such changes are needed, mention them in the report and let the user decide.
-- Do not leave \`TODO\` / \`FIXME\` / \`HACK\` markers in the final commit (unless the action itself is to add a TODO).
+- Allowed git operations without further confirmation: \`git add\`, \`git commit\`, \`git push\` to the current branch's existing upstream. **Not allowed without explicit user instruction**: \`reset --hard\`, \`push --force\`, \`push --force-with-lease\`, branch deletion, history rewrites.
+- README.md updates are part of this workflow (step 4). Other docs (\`CLAUDE.md\`, \`settings.json\`, etc.) are still out of scope unless the entry explicitly targets them — if you discover such changes are needed, mention them and let the user decide.
+- Do not leave \`TODO\` / \`FIXME\` / \`HACK\` markers in the final commit (unless the entry itself is to add a TODO).
 - If the action is high-risk (mass deletion, data overwrite, CI/CD changes, secret handling), **stop and confirm** before acting.
-
-**Output format example**
-
-\`\`\`
-## /oplg:apply done
-
-**Action:** <action summary>
-
-### Changes
-- src/foo.ts: add behavior X
-- tests/foo.test.ts: cover X
-
-### Verification
-- \`pnpm run build\`: pass
-- \`pnpm test\`: pass (12 passed)
-
-### Follow-ups
-- To log this change, run \`/oplg:record\`.
-\`\`\`
 `;
 
 export function getApplySkillTemplate(): SkillTemplate {

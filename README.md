@@ -204,7 +204,7 @@ Available flags:
 
 | Command | Purpose |
 |---------|---------|
-| `/oplg:apply <action>` | Modify code based on the user's described action: plan, edit, locally verify, summarize. |
+| `/oplg:apply <action>` | Modify code based on the user's described action: plan, edit, sync `README.md` when user-facing behavior changes, locally verify, then commit and push **per sub-task** (one entry → one commit → one push). |
 | `/oplg:record` | Write the most recent changes as a record under `openlog/changes/`. **Title is auto-derived from the actual diff** (no manual title needed) and internal docs such as `README.md`, `openlog/project.md`, and `openlog/specs/` are updated when applicable. |
 
 ## Development commands
