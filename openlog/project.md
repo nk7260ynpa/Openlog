@@ -9,8 +9,7 @@ Describe the project's goals, scope, and target users here.
 ## Layout
 
 - **`openlog/specs/`**: spec folder for stable requirements and specification documents.
-- **`openlog/changes/`**: in-flight change proposals.
-- **`openlog/changes/archive/`**: completed and archived changes.
+- **`openlog/changes/`**: change records authored by the workflow.
 - **`openlog/project.md`** (this file): project overview and entry point.
 
 ## Tech stack
@@ -20,7 +19,7 @@ Describe the project's goals, scope, and target users here.
 ## Development workflow
 
 1. Manage specs and changes through the `openlog` CLI (coming in later versions).
-2. New changes start in `openlog/changes/` and are moved to `openlog/changes/archive/` once complete.
+2. New change records land in `openlog/changes/` via `/oplg:record`.
 
 ## Next steps
 
