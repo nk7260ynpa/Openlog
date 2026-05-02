@@ -11,6 +11,13 @@ const runTsc = (args = []) => {
   execFileSync(process.execPath, [tscPath, ...args], { stdio: 'inherit' });
 };
 
+const isPrepare = process.env.npm_lifecycle_event === 'prepare';
+
+if (isPrepare && existsSync('dist/cli/index.js')) {
+  console.log('Skipping build: dist/ already present (prepare hook).');
+  process.exit(0);
+}
+
 console.log('🔨 Building Openlog...\n');
 
 if (existsSync('dist')) {
