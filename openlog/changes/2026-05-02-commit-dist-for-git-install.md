@@ -52,11 +52,17 @@ Require stack:
 - `npm run build`：正常清空 dist 後重建，tsc 5.9.3，成功。
 - `dist/` 共 72 檔 / 312K，不含 source map 以外的雜訊。
 - 工作區乾淨後預期會有：`.gitignore`、`build.js`、`package.json`、`CLAUDE.md`、`dist/**`、新記錄檔。
-- 尚未實機跑 `npm i -g github:nk7260ynpa/Openlog#v0.3.5` 驗證遠端安裝（push tag 後再請使用者驗證）。
+- 實機驗證（push tag 後）：
+  - **`npm i -g <local-tarball>` ✅**：把 repo `npm pack` 出來再裝，`openlog --version` 正常顯示 `0.3.5`，`bin/`、`dist/**.js` 都齊全。
+  - **`npm i -g .`（從 local clone）✅**：同上正常。
+  - **`npm i -g github:nk7260ynpa/Openlog` ❌**：npm 11.12 + node 25 的 git-URL 全域安裝流程本身有 bug——npm clone 出來的 temp dir 在 install 結束後只剩約 23 個 `.d.ts` 檔，`bin/`、`package.json`、`dist/**.js` 全部消失。即使加 `--ignore-scripts` 也一樣，所以**這跟我們有沒有 prepare、有沒有 commit dist 無關**。npm 11 git-dep 流程在這個環境是壞的。
+  - npm log 顯示 prepare 確實有跑且 `code: 0`（skip 路徑成功觸發），但 npm 在 prepare 之後不知怎麼把多數檔案從 temp dir 移除了，造成最終 install 目錄殘缺。
+- 結論：v0.3.5 的 commit-dist + skip-prepare 機制本身是對的（讓 tarball / local install 不再依賴 tsc），但無法繞過 npm 11 git-URL 流程的 bug。實務上請改用 local clone + `npm i -g <path>` 或 tarball 方式安裝；README 已補上對應說明與已知 bug 註記。
 
 ## 後續工作
 
-- [ ] push 後實機跑 `npm i -g github:nk7260ynpa/Openlog#v0.3.5`，確認 prepare 直接 skip 而非報錯。
+- [x] 已實機驗證 tarball / local install 路徑可正常安裝；git-URL 路徑因 npm 11 bug 無解，已在 README 註記 workaround。
+- [ ] 持續關注 npm/cli issue tracker，等 npm 11 修掉 git-dep 全域安裝 bug 後再回來測。
 - [ ] 若日後將套件正式發到 npm，`dist/` 會由 npm publish 流程從 tarball 提供，可考慮把 `dist/` 重新加回 `.gitignore`，但通常不建議——對於同時支援 git-URL 與 npm 安裝的套件，commit dist 是常見做法。
 - [ ] 視情況加 CI 檢查：commit 時若 `src/` 有改動但 `dist/` 沒對應更新就警告。
 - [ ] 使用者端若仍卡在舊 symlink 殘留（`~/.npm-global/lib/node_modules/@chen/openlog` 是 symlink），需先 `unlink` 才能正常裝；這是 npm 對 link → install 切換的固有問題，與本修法無關。

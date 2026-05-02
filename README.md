@@ -50,20 +50,49 @@ Openlog/
 
 ## Install
 
+The compiled `dist/` is checked in (since v0.3.5), so end users do not
+need a TypeScript toolchain to install.
+
+### From a local clone (recommended)
+
+```bash
+git clone https://github.com/nk7260ynpa/Openlog /tmp/openlog
+npm i -g /tmp/openlog
+openlog --version
+```
+
+This is the most reliable install path. To upgrade later, `git pull`
+inside the clone and re-run `npm i -g /tmp/openlog`.
+
+### From a tarball
+
+```bash
+git clone https://github.com/nk7260ynpa/Openlog /tmp/openlog
+cd /tmp/openlog && npm pack
+npm i -g /tmp/openlog/chen-openlog-*.tgz
+```
+
 ### From source (development)
 
 ```bash
-cd /Users/chen/AI/Openlog
-pnpm install      # install dependencies
-pnpm run build    # compile to dist/
+git clone https://github.com/nk7260ynpa/Openlog
+cd Openlog
+pnpm install        # install devDependencies
+pnpm run build      # rebuild dist/
+pnpm link --global  # expose `openlog` from this clone
 ```
 
-### Global link (during development)
+### Known issue: `npm i -g github:...` is broken on npm 11
 
-```bash
-pnpm link --global
-openlog --version
-```
+`npm i -g github:nk7260ynpa/Openlog` and `npm i -g
+git+https://github.com/nk7260ynpa/Openlog.git` are NOT reliable on npm
+11.12.x with Node 25 — npm leaves the global install directory with
+only a partial set of `.d.ts` files (no `bin/`, no compiled `.js`),
+which is an npm bug, not an Openlog problem. Use one of the methods
+above instead. If you have already attempted a git-URL install and
+have a stale symlink at
+`~/.npm-global/lib/node_modules/@chen/openlog`, remove it with
+`unlink` before re-installing.
 
 ### After publishing to npm
 
