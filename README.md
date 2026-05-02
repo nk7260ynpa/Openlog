@@ -205,7 +205,7 @@ Available flags:
 | Command | Purpose |
 |---------|---------|
 | `/oplg:apply <action>` | Modify code based on the user's described action: plan, edit, sync `README.md` when user-facing behavior changes, locally verify, then commit and push **per sub-task** (one entry → one commit → one push). |
-| `/oplg:record` | Write the most recent changes as a record under `openlog/changes/`. **Title is auto-derived from the actual diff** (no manual title needed) and internal docs such as `README.md`, `openlog/project.md`, and `openlog/specs/` are updated when applicable. |
+| `/oplg:record` | Find every entry from the current session that is **not yet recorded** under `openlog/changes/` and write one record file per entry. **Title is auto-derived from the actual diff** (no manual title needed); filenames use `<YYYY-MM-DD>_<NN>-<slug>.md` where `<NN>` is a per-day completion counter (`_01`, `_02`, ...). Internal docs such as `openlog/project.md` and `openlog/specs/` are updated when applicable; `README.md` is **not** touched by this workflow (that is owned by `/oplg:apply`). After writing records, the workflow commits and pushes. |
 
 ## Development commands
 

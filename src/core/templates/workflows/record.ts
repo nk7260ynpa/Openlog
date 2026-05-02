@@ -9,7 +9,7 @@
 
 import type { SkillTemplate, CommandTemplate } from '../types.js';
 
-const SHARED_BODY = `Turn the "most recent changes" into a documentation record under the project's \`openlog/\` directory, and update internal documentation as needed.
+const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in the current session that has **not yet been recorded** under \`openlog/changes/\`, then write one record file per entry and update internal documentation as needed.
 
 **Input**
 
@@ -22,26 +22,34 @@ const SHARED_BODY = `Turn the "most recent changes" into a documentation record 
 
 **Steps**
 
-1. **Inventory the changes to record**
-   - Start with \`git status --short\` and \`git diff --stat\` to confirm there is something to record.
-   - If nothing has been committed yet: use \`git diff\` for uncommitted changes as the primary material.
-   - If a commit just landed: use \`git log -1 --stat\` and \`git show HEAD\` for the latest commit.
-   - If both come up empty: ask the user which range to record (e.g. commit hash range \`A..B\`); do not fabricate content.
-   - **Also include** design decisions and trade-offs from the current conversation that have not been committed yet.
+1. **Inventory the unrecorded entries**
 
-2. **Auto-generate title and file path**
+   The goal is to enumerate every entry from the **current session** that has not yet been written into a record file, and produce one record file per entry. Treat each logically distinct change (one feature, one fix, one refactor, ...) as its own entry — do not merge unrelated changes into a single record.
 
-   Derive the title from the changes themselves. **Do not** ask the user for a title, and **do not** use whatever text follows \`/oplg:record\` as the title.
+   - Gather candidate entries from:
+     - \`git log\` for commits made during the session (e.g. since the previous record's commit, or since the session-start ref).
+     - \`git status --short\` + \`git diff\` for uncommitted changes still in the working tree.
+     - Conversation context: design decisions and trade-offs that were agreed but not yet written to disk.
+   - Cross-check against existing files under \`openlog/changes/\`. Skip entries that are already represented; treat as new only those without a matching record.
+   - If both git history and the working tree are empty and the conversation has nothing new: ask the user which range to record (e.g. commit hash range \`A..B\`); do not fabricate content.
+   - If everything is already recorded: report "nothing new to record" and stop.
+
+2. **Auto-generate title and file path (per entry)**
+
+   For each unrecorded entry, derive its title from the changes themselves. **Do not** ask the user for a title, and **do not** use whatever text follows \`/oplg:record\` as the title.
 
    - **Title (sentence describing the change)**: a single sentence covering "what was done + what it affects", e.g.:
      - "Add --dry-run flag to \`openlog init\`"
      - "Fix git check logic in \`/oplg:apply\` when working tree is clean"
      - When fitting, prefix with a Conventional Commits verb (feat/fix/refactor/docs/test/chore).
    - **slug (filename, alphanumeric + hyphen)**: distill the title into a concise English slug, lower-case, kebab-case, ~6 words max. Examples: \`add-dry-run-to-init\`, \`fix-apply-clean-state-check\`. **Avoid non-ASCII filenames.**
-   - **Path**: \`openlog/changes/<YYYY-MM-DD>-<slug>.md\`. If the same date+slug already exists, append \`-2\`, \`-3\`, etc.; **do not** overwrite an existing file.
-   - List the inferred title and slug in your report so the user can rename via \`git mv\` later if desired.
+   - **Path**: \`openlog/changes/<YYYY-MM-DD>_<NN>-<slug>.md\`, where \`<NN>\` is a two-digit completion-order counter for that date.
+     - The first record of a given date starts at \`_01\`; the next is \`_02\`, then \`_03\`, and so on.
+     - Determine \`<NN>\` by listing existing files under \`openlog/changes/\` whose name starts with the same date and incrementing past the highest existing number.
+     - If a same-named file already exists, do not overwrite it; use the next free \`<NN>\`.
+   - List each inferred title, slug, and path in your final report so the user can rename via \`git mv\` later if desired.
 
-3. **Generate the record file**
+3. **Generate the record file (per entry)**
 
    Use the following skeleton (English content; keep code/paths verbatim):
 
@@ -82,9 +90,10 @@ const SHARED_BODY = `Turn the "most recent changes" into a documentation record 
 
 4. **Sync internal docs (when applicable)**
 
-   Based on the change, **proactively** decide whether the following files need updates; if so, update them and list each one in the final report:
+   Based on the change, **proactively** decide whether the following files need updates; if so, update them and list each one in the final report.
 
-   - \`README.md\`: update when CLI commands, public APIs, install steps, or dependencies change.
+   \`README.md\` is **out of scope** for \`/oplg:record\` — it is owned by \`/oplg:apply\` (or another workflow) and must not be modified here.
+
    - \`openlog/project.md\`: update when the tech stack, layout, or workflow changes.
    - Existing specs under \`openlog/specs/\`: update or add a spec when the implementation diverges.
    - \`CHANGELOG.md\` (if present): add an entry following the project's existing style.
@@ -93,18 +102,27 @@ const SHARED_BODY = `Turn the "most recent changes" into a documentation record 
 
    Use minimal diffs for each update; do not rewrite whole documents.
 
-5. **Summary report**
+5. **Commit and push**
+
+   - Stage the new record file(s) and any internal-doc updates from step 4.
+   - Create a commit using Conventional Commits (typically \`docs(openlog): ...\`) and the project's existing commit-message style.
+   - Run \`git push\` to the current branch's existing upstream.
+   - If \`git push\` fails (no upstream, network error, non-fast-forward rejection), stop and report; do not force-push.
+
+6. **Summary report**
 
    Produce a short bulleted summary:
-   - Path of the new record file (link).
+   - Path of each new record file (link).
    - List of updated internal docs (one-line reason each).
+   - Commit SHA and push result.
    - Any files you skipped or were unsure about, so the user can decide.
 
 **Guardrails**
 
-- Do not run \`git commit\` or \`git push\` on your own unless the user asks.
+- Allowed git operations without further confirmation: \`git add\`, \`git commit\`, \`git push\` to the current branch's existing upstream. **Not allowed without explicit user instruction**: \`reset --hard\`, \`push --force\`, branch deletion, history rewrites.
+- Do **not** modify \`README.md\` from this workflow; defer to \`/oplg:apply\` (or whichever workflow owns user-facing docs) for README updates.
 - Record content must come from real diffs / commits / conversation facts; **do not** fabricate code changes or test results.
-- If a same-named file already exists in \`openlog/changes/\` with different content: create a new file with a numeric suffix; **do not** overwrite the existing one.
+- If a same-named file already exists in \`openlog/changes/\`: pick the next free \`<NN>\` counter; **do not** overwrite the existing one.
 - For internal docs you are unsure about, list them in a "needs user decision" section instead of forcing a change.
 
 **Output format example**
@@ -113,11 +131,15 @@ const SHARED_BODY = `Turn the "most recent changes" into a documentation record 
 ## /oplg:record done
 
 ### New
-- openlog/changes/2026-05-01-add-dry-run-flag.md
+- openlog/changes/2026-05-01_01-add-dry-run-flag.md
+- openlog/changes/2026-05-01_02-fix-apply-clean-state-check.md
 
 ### Updated
-- README.md: documented \`--dry-run\` usage
 - openlog/project.md: added dry-run note in the dev commands section
+
+### Commit
+- 7f3d1ab — docs(openlog): record dry-run + apply clean-state fixes
+- pushed to origin/main
 
 ### Needs user decision
 - Should we add an init-flags spec under \`openlog/specs/\`?
