@@ -19,7 +19,7 @@ export function createProgram() {
         .command('init [path]')
         .description('Create the openlog/ structure and AI-tool scaffolding folders in the target project')
         .option('--tools <tools>', toolsOption)
-        .option('--force', 'Re-initialize even if openlog/ already exists')
+        .option('--force', 'Regenerate openlog/project.md even if it already exists (openlog/ structure and AI-tool files are always synced idempotently)')
         .action(async (targetPath, options = {}) => {
         try {
             const { InitCommand } = await import('../core/init.js');

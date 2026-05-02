@@ -28,43 +28,61 @@ export class InitCommand {
         const projectPath = path.resolve(targetPath);
         await this.ensureProjectDir(projectPath);
         const openlogPath = path.join(projectPath, OPENLOG_DIR_NAME);
+        const openlogRel = path.relative(projectPath, openlogPath) || OPENLOG_DIR_NAME;
         const selectedTools = await this.resolveSelectedTools();
         if (selectedTools.length === 0) {
             console.log(chalk.yellow('⚠ No AI tools selected; only the openlog/ directory will be created.'));
         }
-        const structureSpinner = ora('Creating openlog/ directory structure...').start();
+        const structureSpinner = ora(`Ensuring ${openlogRel}/ directory structure...`).start();
+        let structureExisted = false;
         try {
-            await this.createOpenlogStructure(openlogPath);
-            structureSpinner.succeed(chalk.green(`Created ${path.relative(projectPath, openlogPath) || OPENLOG_DIR_NAME}/ structure`));
+            const result = await this.createOpenlogStructure(openlogPath);
+            structureExisted = result.existed;
+            const verb = structureExisted ? 'Verified' : 'Created';
+            structureSpinner.succeed(chalk.green(`${verb} ${openlogRel}/ structure`));
         }
         catch (error) {
-            structureSpinner.fail('Failed to create openlog/ directory');
+            structureSpinner.fail(`Failed to ensure ${openlogRel}/ directory`);
             throw error;
         }
         const projectMdPath = path.join(openlogPath, 'project.md');
-        const projectMdSpinner = ora('Generating openlog/project.md...').start();
+        const projectMdRel = path.relative(projectPath, projectMdPath);
+        const projectMdSpinner = ora(`Ensuring ${projectMdRel}...`).start();
         try {
-            await this.createProjectMd(projectMdPath, projectPath);
-            projectMdSpinner.succeed(chalk.green('Generated openlog/project.md'));
+            const projectMdStatus = await this.createProjectMd(projectMdPath, projectPath);
+            const message = projectMdStatus === 'created'
+                ? `Generated ${projectMdRel}`
+                : projectMdStatus === 'updated'
+                    ? `Updated ${projectMdRel} (--force)`
+                    : `Kept existing ${projectMdRel}`;
+            projectMdSpinner.succeed(chalk.green(message));
         }
         catch (error) {
-            projectMdSpinner.fail('Failed to generate project.md');
+            projectMdSpinner.fail(`Failed to ensure ${projectMdRel}`);
             throw error;
         }
         const generatedSummaries = [];
         for (const tool of selectedTools) {
-            const spinner = ora(`Configuring ${tool.name} (${tool.skillsDir}/)...`).start();
+            const spinner = ora(`Syncing ${tool.name} (${tool.skillsDir}/)...`).start();
             try {
                 const summary = await this.generateSkillsAndCommands(projectPath, tool);
                 generatedSummaries.push(summary);
-                spinner.succeed(chalk.green(`Configured ${tool.name}: ${summary.skillCount} skill(s), ${summary.commandCount} command(s)`));
+                const counts = countByStatus(summary.files);
+                const detail = [
+                    counts.created ? `${counts.created} created` : null,
+                    counts.updated ? `${counts.updated} updated` : null,
+                    counts.unchanged ? `${counts.unchanged} unchanged` : null,
+                ]
+                    .filter(Boolean)
+                    .join(', ') || 'nothing to write';
+                spinner.succeed(chalk.green(`Synced ${tool.name}: ${detail}`));
             }
             catch (error) {
                 spinner.fail(`Failed to configure ${tool.name}`);
                 throw error;
             }
         }
-        this.printSummary(projectPath, openlogPath, selectedTools, generatedSummaries);
+        this.printSummary(projectPath, openlogPath, selectedTools, generatedSummaries, structureExisted);
     }
     async ensureProjectDir(projectPath) {
         try {
@@ -135,13 +153,7 @@ export class InitCommand {
             .filter((tool) => Boolean(tool));
     }
     async createOpenlogStructure(openlogPath) {
-        const exists = await this.pathExists(openlogPath);
-        if (exists && !this.force) {
-            const hasContent = (await fs.readdir(openlogPath)).length > 0;
-            if (hasContent) {
-                throw new Error(`${OPENLOG_DIR_NAME}/ already exists and is not empty. Use --force to re-initialize.`);
-            }
-        }
+        const existed = await this.pathExists(openlogPath);
         const directories = [
             openlogPath,
             path.join(openlogPath, 'specs'),
@@ -151,11 +163,12 @@ export class InitCommand {
         for (const dir of directories) {
             await fs.mkdir(dir, { recursive: true });
         }
+        return { existed };
     }
     async createProjectMd(projectMdPath, projectPath) {
         const exists = await this.pathExists(projectMdPath);
         if (exists && !this.force) {
-            return;
+            return 'unchanged';
         }
         const projectName = path.basename(projectPath);
         const content = `# ${projectName}
@@ -188,7 +201,7 @@ Describe the project's goals, scope, and target users here.
 - [ ] Author the first spec under \`${OPENLOG_DIR_NAME}/specs/\`
 - [ ] Plan the first change under \`${OPENLOG_DIR_NAME}/changes/\`
 `;
-        await fs.writeFile(projectMdPath, content, 'utf8');
+        return this.writeIfChanged(projectMdPath, content);
     }
     async pathExists(target) {
         try {
@@ -197,6 +210,30 @@ Describe the project's goals, scope, and target users here.
         }
         catch {
             return false;
+        }
+    }
+    /**
+     * Write `content` to `target`, only touching disk when missing or different.
+     *
+     * Returns `'created'` when the file did not exist, `'updated'` when content
+     * changed, and `'unchanged'` when the file is already byte-identical.
+     */
+    async writeIfChanged(target, content) {
+        try {
+            const existing = await fs.readFile(target, 'utf8');
+            if (existing === content) {
+                return 'unchanged';
+            }
+            await fs.writeFile(target, content, 'utf8');
+            return 'updated';
+        }
+        catch (error) {
+            const err = error;
+            if (err.code !== 'ENOENT') {
+                throw error;
+            }
+            await fs.writeFile(target, content, 'utf8');
+            return 'created';
         }
     }
     /**
@@ -209,7 +246,7 @@ Describe the project's goals, scope, and target users here.
     async generateSkillsAndCommands(projectPath, tool) {
         let skillCount = 0;
         let commandCount = 0;
-        const writtenPaths = [];
+        const files = [];
         // Generate skills (only for tools that support the Agent Skills spec, e.g. Claude Code).
         if (tool.supportsSkills) {
             const skillsRoot = path.join(projectPath, tool.skillsDir, 'skills');
@@ -219,9 +256,9 @@ Describe the project's goals, scope, and target users here.
                 const skillFile = path.join(skillDir, 'SKILL.md');
                 await fs.mkdir(skillDir, { recursive: true });
                 const content = generateSkillContent(template, OPENLOG_VERSION);
-                await fs.writeFile(skillFile, content, 'utf8');
+                const status = await this.writeIfChanged(skillFile, content);
                 skillCount += 1;
-                writtenPaths.push(path.relative(projectPath, skillFile));
+                files.push({ path: path.relative(projectPath, skillFile), status });
             }
         }
         // Generate slash commands (gated on whether the tool has a registered adapter).
@@ -233,30 +270,33 @@ Describe the project's goals, scope, and target users here.
                     ? cmd.path
                     : path.join(projectPath, cmd.path);
                 await fs.mkdir(path.dirname(target), { recursive: true });
-                await fs.writeFile(target, cmd.fileContent, 'utf8');
+                const status = await this.writeIfChanged(target, cmd.fileContent);
                 commandCount += 1;
-                writtenPaths.push(path.relative(projectPath, target));
+                files.push({ path: path.relative(projectPath, target), status });
             }
         }
         return {
             tool,
             skillCount,
             commandCount,
-            writtenPaths,
+            files,
             hasCommandAdapter: Boolean(adapter),
         };
     }
-    printSummary(projectPath, openlogPath, selectedTools, generatedSummaries) {
+    printSummary(projectPath, openlogPath, selectedTools, generatedSummaries, structureExisted) {
         const rel = (target) => path.relative(projectPath, target) || '.';
         console.log();
-        console.log(chalk.bold('Openlog initialization complete 🎉'));
+        const headline = structureExisted
+            ? 'Openlog re-sync complete 🎉'
+            : 'Openlog initialization complete 🎉';
+        console.log(chalk.bold(headline));
         console.log(`  • ${rel(openlogPath)}/specs/`);
         console.log(`  • ${rel(openlogPath)}/changes/`);
         console.log(`  • ${rel(openlogPath)}/changes/archive/`);
         console.log(`  • ${rel(path.join(openlogPath, 'project.md'))}`);
         if (selectedTools.length > 0) {
             console.log();
-            console.log(chalk.bold('AI tool scaffolding created:'));
+            console.log(chalk.bold('AI tool scaffolding:'));
             for (const summary of generatedSummaries) {
                 const { tool, skillCount, commandCount, hasCommandAdapter } = summary;
                 const parts = [];
@@ -268,13 +308,28 @@ Describe the project's goals, scope, and target users here.
                 }
                 const note = parts.length > 0 ? parts.join(', ') : 'nothing to generate';
                 console.log(`  • ${tool.skillsDir}/ — ${tool.name} (${note})`);
-                for (const p of summary.writtenPaths) {
-                    console.log(chalk.dim(`      ${p}`));
+                for (const file of summary.files) {
+                    console.log(chalk.dim(`      ${formatFileStatus(file)}`));
                 }
             }
             console.log();
             console.log(chalk.dim('Usage: run /oplg:apply <action> or /oplg:record inside your AI tool.'));
         }
     }
+}
+function countByStatus(files) {
+    const counts = { created: 0, updated: 0, unchanged: 0 };
+    for (const file of files) {
+        counts[file.status] += 1;
+    }
+    return counts;
+}
+function formatFileStatus(file) {
+    const tag = file.status === 'created'
+        ? '[created]'
+        : file.status === 'updated'
+            ? '[updated]'
+            : '[unchanged]';
+    return `${tag.padEnd(11)} ${file.path}`;
 }
 //# sourceMappingURL=init.js.map

@@ -30,6 +30,13 @@ export declare class InitCommand {
     private createProjectMd;
     private pathExists;
     /**
+     * Write `content` to `target`, only touching disk when missing or different.
+     *
+     * Returns `'created'` when the file did not exist, `'updated'` when content
+     * changed, and `'unchanged'` when the file is already byte-identical.
+     */
+    private writeIfChanged;
+    /**
      * Generate skills and slash commands for a single AI tool.
      *
      * - Skill: written to `<skillsDir>/skills/<dirName>/SKILL.md`.

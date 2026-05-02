@@ -123,7 +123,12 @@ openlog init --tools claude
 openlog init ./my-project --tools claude,github-copilot
 openlog init --tools all
 
-# Force re-initialization when openlog/ already exists
+# Re-run after a CLI upgrade — openlog/ structure and AI-tool files
+# are diff-synced (created / updated / unchanged) without --force.
+openlog init
+
+# --force only regenerates openlog/project.md (structure and tool
+# files are always synced idempotently).
 openlog init --force
 ```
 
