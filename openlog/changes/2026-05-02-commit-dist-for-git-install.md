@@ -1,16 +1,16 @@
-# Commit 預先 build 好的 dist/ 並讓 prepare 在 dist 存在時跳過
+# Commit prebuilt dist/ and skip prepare when dist is present
 
-- **日期：** 2026-05-02
-- **作者：** nk7260ynpa
-- **相關 commit：** 尚未提交（將以本紀錄一同 commit 為 v0.3.5）
+- **Date:** 2026-05-02
+- **Author:** nk7260ynpa
+- **Related commit:** Not yet committed (will ship as v0.3.5 together with this record)
 
-## 摘要
+## Summary
 
-把預先 build 好的 `dist/` commit 進 repo，並讓 `build.js` 的 `prepare` 路徑在 `dist/cli/index.js` 已存在時直接 skip。這是繼 v0.3.4 嘗試後的真正修法：v0.3.4 把 `typescript` 升格到 `dependencies` 並沒有解決 `npm i -g github:...` 的 prepare 失敗，因為 npm 11 在 git-dep prepare 階段**完全不會在 clone temp 目錄裡裝任何 node_modules**（不論 deps 還是 devDeps）。本次同步把 `typescript` 與 `@types/node` 改回 `devDependencies` 以省下使用者端 ~70MB。版本 `0.3.4` → `0.3.5`。
+Commit the prebuilt `dist/` to the repository and have `build.js` short-circuit when it runs as the `prepare` lifecycle hook and `dist/cli/index.js` already exists. This is the real fix for `npm i -g github:...` failures: the v0.3.4 attempt of promoting `typescript` to `dependencies` did not help, because npm 11 in the git-dep prepare phase **does not install any node_modules into the clone temp directory** (neither deps nor devDeps). This change also moves `typescript` and `@types/node` back to `devDependencies` to save users ~70MB. Bump version `0.3.4` → `0.3.5`.
 
-## 動機 / 背景
+## Motivation / context
 
-v0.3.4 改動後，使用者再次 `npm i -g github:nk7260ynpa/Openlog`，依然失敗。新版 `build.js` 的 `error.stack` 輸出抓到真正錯誤：
+After v0.3.4 was pushed, `npm i -g github:nk7260ynpa/Openlog` still failed. The new `error.stack` print in `build.js` revealed the real error:
 
 ```
 Error: Cannot find module 'typescript/bin/tsc'
@@ -18,51 +18,51 @@ Require stack:
 - /Users/chen/.npm/_cacache/tmp/git-cloneYvnIe1/build.js
 ```
 
-對 npm 11 的 debug log 檢視後確認：
+Inspecting the npm 11 debug log confirmed:
 
-- npm 把 `@chen/openlog` 連同所有 dependencies（包括剛升格的 `typescript`）一律 placeDep 到「最終的全域目的地」（`~/.npm-global/lib/node_modules/@chen/openlog/node_modules/...`），而**不是** clone 出來的 `~/.npm/_cacache/tmp/git-cloneXXX/node_modules/`。
-- `prepare` script 卻是在那個 temp clone 目錄底下執行的，因此 `require.resolve('typescript/bin/tsc')` 必然失敗——即使 `typescript` 是 `dependencies` 也一樣。
-- 換句話說，把 deps 升格到 dependencies 沒有改善任何事，反而讓使用者多裝 ~70MB。
+- npm placeDeps the `@chen/openlog` tree (including the freshly promoted `typescript`) into the **final global destination** (`~/.npm-global/lib/node_modules/@chen/openlog/node_modules/...`), **not** into the clone's `~/.npm/_cacache/tmp/git-cloneXXX/node_modules/`.
+- The `prepare` script, however, runs inside that temp clone directory, so `require.resolve('typescript/bin/tsc')` is guaranteed to fail — even when `typescript` is a `dependency`.
+- In other words, promoting deps into `dependencies` does not change anything in this flow; it only makes users carry an extra ~70MB.
 
-由於本套件目前只以 git URL 形式分發（CLAUDE.md 註明 `@chen` scope 尚未上 npm），git-URL 安裝是主要路徑。要繞過 npm 11 這個流程限制，最穩定的做法就是讓使用者端**完全不需要 build**：把預先 build 好的 `dist/` commit 進 repo，prepare 只在「真的沒有 dist」時才嘗試 build。
+Since the package is currently distributed only via git URL (CLAUDE.md notes the `@chen` scope is not yet on npm), the git-URL install is the primary path. The most stable way around npm 11's pipeline limitation is to **remove the user-side build entirely**: commit a prebuilt `dist/` to the repo and only run the actual build when `dist/` is genuinely missing.
 
-## 主要變更
+## Key changes
 
-- `.gitignore`：移除 `dist/` 條目，讓 `dist/` 進版控。
-- `build.js:14-18`：在主流程開頭加入早退判斷——若 `npm_lifecycle_event === 'prepare'` 且 `dist/cli/index.js` 已存在，印 `Skipping build: dist/ already present (prepare hook).` 後 `process.exit(0)`。`npm run build` 因 `npm_lifecycle_event === 'build'` 不會 skip，仍會清空 dist 後重建。
-- `package.json`：
-  - `typescript ^5.9.3`、`@types/node ^24.2.0` 從 `dependencies` 移回 `devDependencies`。
-  - 版本 `0.3.4` → `0.3.5`。
-- `CLAUDE.md`：更新「建置流程」段落，說明 `dist/` 自 v0.3.5 起入版控，以及 prepare 的 skip 行為。
-- `dist/`：commit 整個 `dist/` 目錄（72 個檔，共 312K）。
+- `.gitignore`: drop the `dist/` entry so `dist/` is now version-controlled.
+- `build.js:14-18`: add an early-exit guard at the top of the main flow — when `npm_lifecycle_event === 'prepare'` and `dist/cli/index.js` already exists, print `Skipping build: dist/ already present (prepare hook).` and `process.exit(0)`. `npm run build` keeps `npm_lifecycle_event === 'build'`, so it does not skip and still cleans `dist/` before rebuilding.
+- `package.json`:
+  - Move `typescript ^5.9.3` and `@types/node ^24.2.0` back from `dependencies` to `devDependencies`.
+  - Bump version `0.3.4` → `0.3.5`.
+- `CLAUDE.md`: update the "build flow" section to document that `dist/` is checked in starting v0.3.5, and to describe the new prepare-skip behavior.
+- `dist/`: commit the whole directory (72 files, 312K).
 
-## 影響範圍
+## Impact
 
-- **使用者面**：`npm i -g github:nk7260ynpa/Openlog`（含 `#v0.3.5`）會在 prepare 階段 skip，不再嘗試呼叫 `tsc`，安裝直接用 repo 內的 `dist/`。
-- **開發者面**：
-  - 開發流程多一條規矩——改 `src/` 後請手動 `npm run build` 重產 `dist/` 並一併 commit；prepare 不再會自動 build。
-  - `npm install` / `pnpm install` 一律 skip prepare（因為 dist 一定存在），install 速度變快。
-  - 若手動 `rm -rf dist/` 後 `npm install`，prepare 會 fallback 走實際 build 路徑（dev 環境有 devDeps，能跑通）。
-- **體積**：使用者端全域安裝少約 70MB（typescript + @types/node 不再是 deps）。
-- **無 breaking change**：CLI 行為與 API 沒改。
+- **User-facing**: `npm i -g github:nk7260ynpa/Openlog` (including `#v0.3.5`) skips at the prepare phase, no longer attempts to invoke `tsc`, and installs directly from the repo's prebuilt `dist/`.
+- **Developer-facing**:
+  - One new development habit — after editing `src/`, manually run `npm run build` to regenerate `dist/` and commit it together with the source change. `prepare` no longer auto-builds.
+  - `npm install` / `pnpm install` always skip prepare (because `dist/` is always present), so install is faster.
+  - If a developer manually `rm -rf dist/` and then runs `npm install`, prepare falls through to the real build path (which works because the dev environment has devDeps).
+- **Footprint**: a global install drops ~70MB (typescript and @types/node are no longer dependencies).
+- **No breaking change**: CLI behavior and API are unchanged.
 
-## 驗證
+## Verification
 
-- `npm_lifecycle_event=prepare node build.js`（dist 存在）：顯示 `Skipping build: dist/ already present (prepare hook).` 然後 exit 0。
-- `npm run build`：正常清空 dist 後重建，tsc 5.9.3，成功。
-- `dist/` 共 72 檔 / 312K，不含 source map 以外的雜訊。
-- 工作區乾淨後預期會有：`.gitignore`、`build.js`、`package.json`、`CLAUDE.md`、`dist/**`、新記錄檔。
-- 實機驗證（push tag 後）：
-  - **`npm i -g <local-tarball>` ✅**：把 repo `npm pack` 出來再裝，`openlog --version` 正常顯示 `0.3.5`，`bin/`、`dist/**.js` 都齊全。
-  - **`npm i -g .`（從 local clone）✅**：同上正常。
-  - **`npm i -g github:nk7260ynpa/Openlog` ❌**：npm 11.12 + node 25 的 git-URL 全域安裝流程本身有 bug——npm clone 出來的 temp dir 在 install 結束後只剩約 23 個 `.d.ts` 檔，`bin/`、`package.json`、`dist/**.js` 全部消失。即使加 `--ignore-scripts` 也一樣，所以**這跟我們有沒有 prepare、有沒有 commit dist 無關**。npm 11 git-dep 流程在這個環境是壞的。
-  - npm log 顯示 prepare 確實有跑且 `code: 0`（skip 路徑成功觸發），但 npm 在 prepare 之後不知怎麼把多數檔案從 temp dir 移除了，造成最終 install 目錄殘缺。
-- 結論：v0.3.5 的 commit-dist + skip-prepare 機制本身是對的（讓 tarball / local install 不再依賴 tsc），但無法繞過 npm 11 git-URL 流程的 bug。實務上請改用 local clone + `npm i -g <path>` 或 tarball 方式安裝；README 已補上對應說明與已知 bug 註記。
+- `npm_lifecycle_event=prepare node build.js` (with `dist/` present): prints `Skipping build: dist/ already present (prepare hook).` and exits 0.
+- `npm run build`: cleans dist and rebuilds normally with tsc 5.9.3 — success.
+- `dist/`: 72 files / 312K, no spurious content beyond source maps.
+- After staging, the working tree contains the expected diff: `.gitignore`, `build.js`, `package.json`, `CLAUDE.md`, `dist/**`, and this record.
+- Real-world installs (after pushing the tag):
+  - **`npm i -g <local-tarball>` ✅**: `npm pack` the repo and install the resulting `.tgz` — `openlog --version` correctly reports `0.3.5`, `bin/` and `dist/**.js` are all there.
+  - **`npm i -g .` (from a local clone) ✅**: same, works normally.
+  - **`npm i -g github:nk7260ynpa/Openlog` ❌**: the npm 11.12 + Node 25 git-URL global install pipeline is itself buggy — after the install completes, the temp clone directory is left with only ~23 `.d.ts` files; `bin/`, `package.json`, and `dist/**.js` are all gone. This reproduces with `--ignore-scripts` too, so **it is unrelated to whether we have a prepare script or whether we commit dist**. npm 11's git-dep flow is broken in this environment.
+  - The npm log confirms prepare did run and exited with `code: 0` (the skip path triggered), but npm strips most files from the temp dir after prepare for an unknown reason, leaving the final install incomplete.
+- Conclusion: the v0.3.5 commit-dist + skip-prepare design is correct in itself (it removes the tsc dependency for tarball / local installs), but it cannot work around the npm 11 git-URL pipeline bug. In practice, install via local clone (`npm i -g <path>`) or via a tarball; the README has been updated with both paths and a note about the known npm 11 bug.
 
-## 後續工作
+## Follow-ups
 
-- [x] 已實機驗證 tarball / local install 路徑可正常安裝；git-URL 路徑因 npm 11 bug 無解，已在 README 註記 workaround。
-- [ ] 持續關注 npm/cli issue tracker，等 npm 11 修掉 git-dep 全域安裝 bug 後再回來測。
-- [ ] 若日後將套件正式發到 npm，`dist/` 會由 npm publish 流程從 tarball 提供，可考慮把 `dist/` 重新加回 `.gitignore`，但通常不建議——對於同時支援 git-URL 與 npm 安裝的套件，commit dist 是常見做法。
-- [ ] 視情況加 CI 檢查：commit 時若 `src/` 有改動但 `dist/` 沒對應更新就警告。
-- [ ] 使用者端若仍卡在舊 symlink 殘留（`~/.npm-global/lib/node_modules/@chen/openlog` 是 symlink），需先 `unlink` 才能正常裝；這是 npm 對 link → install 切換的固有問題，與本修法無關。
+- [x] Verified that tarball / local install paths work; the git-URL path is unsalvageable due to the npm 11 bug, with a workaround documented in the README.
+- [ ] Watch the npm/cli issue tracker; once npm 11 fixes the git-dep global install bug, retest.
+- [ ] If the package is later published to npm, `dist/` will be supplied through the npm publish flow (from the tarball), so `dist/` could in theory return to `.gitignore`. Usually it is not worth it — for packages that support both git-URL and npm install, committing `dist/` is a common practice.
+- [ ] Consider a CI check that warns when a commit changes `src/` without a matching `dist/` update.
+- [ ] If a stale `~/.npm-global/lib/node_modules/@chen/openlog` symlink remains on the user side (left over from a previous `npm link`), `unlink` it before reinstalling. This is npm's inherent issue around link → install transitions and is unrelated to this fix.

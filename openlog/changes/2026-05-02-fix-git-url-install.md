@@ -1,49 +1,49 @@
-# 修正 git-URL 全域安裝失敗並改善 build.js 錯誤輸出
+# Fix git-URL global install failure and improve build.js error output
 
-- **日期：** 2026-05-02
-- **作者：** nk7260ynpa
-- **相關 commit：** 尚未提交（將以本紀錄一同 commit 為 v0.3.4）
+- **Date:** 2026-05-02
+- **Author:** nk7260ynpa
+- **Related commit:** Not yet committed (will ship as v0.3.4 together with this record)
 
-## 摘要
+## Summary
 
-把 `typescript` 與 `@types/node` 從 `devDependencies` 移至 `dependencies`，以解決使用者在 macOS / Node 25 / npm 11 下執行 `npm i -g github:nk7260ynpa/Openlog` 時 prepare 階段找不到 `tsc` 而 build 失敗的問題；同時在 `build.js` 的 catch 區塊補印 `error.stack`，避免之後 build 失敗只看到「❌ Build failed!」沒有任何上下文。並將版本號從 `0.3.3` 升至 `0.3.4`。
+Move `typescript` and `@types/node` from `devDependencies` to `dependencies` to fix a build failure when users run `npm i -g github:nk7260ynpa/Openlog` on macOS / Node 25 / npm 11, where the `prepare` step could not find `tsc`. Also add `error.stack` printing to the catch block in `build.js` so future build failures show the real error instead of a bare `❌ Build failed!` line. Bump the package version from `0.3.3` to `0.3.4`.
 
-## 動機 / 背景
+## Motivation / context
 
-使用者實際遇到的錯誤鏈：
+Reproducing the user's failure chain:
 
-1. 第一次 `npm i -g github:nk7260ynpa/Openlog` 時撞到 `ENOTDIR: rename` 錯誤，原因是 `~/.npm-global/lib/node_modules/@chen/openlog` 是先前 `npm link` 留下的 symlink，npm 想把它當資料夾備份所以失敗。
-2. 解開 symlink 後重裝，改撞到 `prepare` script 的 `node build.js` 失敗，錯誤訊息僅有 `❌ Build failed!`，無法判斷原因。
-3. 比對本地 `git clone` + `npm install` 卻能正常 build，差異在於 npm 11 在做 `npm i -g <git-url>` 時，雖然內部命令帶了 `--include=dev`，實際 prepare 環境裡 devDependencies 並沒有完整安裝進去，導致 `require.resolve('typescript/bin/tsc')` 找不到 typescript 套件。
+1. The first `npm i -g github:nk7260ynpa/Openlog` failed with `ENOTDIR: rename`, because `~/.npm-global/lib/node_modules/@chen/openlog` was a symlink left over from a previous `npm link` and npm tried to "retire" it as if it were a directory.
+2. After unlinking the symlink and reinstalling, the `prepare` script (`node build.js`) failed with only `❌ Build failed!`, with no further detail.
+3. A local `git clone` + `npm install` builds fine. The difference is that during `npm i -g <git-url>`, even though the inner npm command carries `--include=dev`, devDependencies are not fully installed into the prepare environment, so `require.resolve('typescript/bin/tsc')` fails.
 
-由於本套件目前僅以 git URL 形式分發（CLAUDE.md 註明 `@chen` scope 尚未上 npm），prepare 一定會在使用者端跑 `tsc`。最直接、最低風險的做法就是把 build-time 必要的 `typescript` 與 `@types/node` 升格為一般 `dependencies`，確保 prepare 環境一定裝得到。
+Since this package is currently distributed only via git URL (CLAUDE.md notes the `@chen` scope is not yet published to npm), `prepare` must always run `tsc` on the user's machine. The lowest-risk fix is to promote the build-time essentials (`typescript` and `@types/node`) into regular `dependencies` so that the prepare environment is guaranteed to find them.
 
-`build.js` 原本的 catch 把 error 整個吞掉只印一行訊息，未來若 build 真的失敗（例如 TS 編譯錯誤、tsconfig 損壞），開發者完全無從下手，因此一併補上 stack 輸出。
+The original `build.js` catch swallowed the error and printed only a one-liner. If the build ever truly fails (TypeScript compile error, broken tsconfig, etc.) developers would have nothing to go on, so the stack is now printed alongside the failure banner.
 
-## 主要變更
+## Key changes
 
-- `package.json`：
-  - 移除 `devDependencies` 區塊。
-  - 將 `typescript ^5.9.3` 與 `@types/node ^24.2.0` 併入 `dependencies`，並依字母序排列。
-  - 版本 `0.3.3` → `0.3.4`。
-- `build.js:28`：catch 區塊新增 `console.error(error.stack || error.message || String(error))`，確保 build 失敗時可看到實際錯誤。
+- `package.json`:
+  - Remove the `devDependencies` block.
+  - Add `typescript ^5.9.3` and `@types/node ^24.2.0` into `dependencies` in alphabetical order.
+  - Bump version `0.3.3` → `0.3.4`.
+- `build.js:28`: add `console.error(error.stack || error.message || String(error))` inside the catch block so build failures expose their underlying cause.
 
-## 影響範圍
+## Impact
 
-- **使用者面**：以 `npm i -g github:nk7260ynpa/Openlog` 安裝可正常通過 prepare；本地 `npm i -g .` 不受影響。
-- **體積**：全域安裝時會多裝 typescript（約 70MB）與 @types/node。對 CLI 套件來說可接受，但若日後正式發布到 npm 並把預先 build 好的 `dist/` 包進 tarball，可考慮把這兩個依賴改回 devDependencies。
-- **行為**：CLI 執行時行為完全沒變；改的是安裝期的 build 流程。
-- **無 breaking change**。
+- **User-facing**: `npm i -g github:nk7260ynpa/Openlog` now passes the prepare phase; local `npm i -g .` is unaffected.
+- **Footprint**: a global install pulls an extra typescript (~70MB) and `@types/node`. Acceptable for a CLI; if the package is later published to npm with prebuilt `dist/` baked into the tarball, these can move back to `devDependencies`.
+- **Behavior**: CLI runtime behavior is unchanged; only the install-time build pipeline is touched.
+- **No breaking change.**
 
-## 驗證
+## Verification
 
-- `npm run build`：通過（tsc 5.9.3，dist 重建成功）。
-- `package.json` 結構檢查：`dependencies` 含 6 個套件（含 `typescript`、`@types/node`），`devDependencies` 已清空。
-- 工作區乾淨，僅本次預期內的 3 個檔案異動（`package.json`、`build.js`、新增的紀錄檔）。
-- 尚未實機跑 `npm i -g github:...` 驗證遠端安裝（需先 push tag 才有意義；commit + push 後再請使用者驗證）。
+- `npm run build`: pass (tsc 5.9.3, dist rebuilt cleanly).
+- `package.json` shape check: `dependencies` holds 6 packages (including `typescript` and `@types/node`); `devDependencies` is empty.
+- Working tree is clean, only the 3 expected files changed (`package.json`, `build.js`, plus this record).
+- Real-world `npm i -g github:...` not yet verified (the tag needs to be pushed first; the user will verify after commit + push).
 
-## 後續工作
+## Follow-ups
 
-- [ ] push 後實機跑 `npm i -g github:nk7260ynpa/Openlog#v0.3.4`，確認 prepare 階段不再失敗。
-- [ ] 若日後將套件正式發布到 npm（並在 tarball 內附 `dist/`），把 `typescript` 與 `@types/node` 改回 `devDependencies` 以縮減使用者端體積。
-- [ ] 視情況在 README 補一段「git-URL 安裝注意事項」說明 prepare 流程依賴 typescript。
+- [ ] After pushing, run `npm i -g github:nk7260ynpa/Openlog#v0.3.4` for real to confirm prepare no longer fails.
+- [ ] If the package is later published to npm (with `dist/` shipped in the tarball), move `typescript` and `@types/node` back to `devDependencies` to shrink the user-facing install.
+- [ ] Consider adding a "git-URL install notes" paragraph to the README explaining that the prepare flow depends on typescript.
