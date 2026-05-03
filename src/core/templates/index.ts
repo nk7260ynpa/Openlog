@@ -18,3 +18,8 @@ export {
   getExploreSkillTemplate,
   getOplgExploreCommandTemplate,
 } from './workflows/explore.js';
+
+export {
+  getVerifySkillTemplate,
+  getOplgVerifyCommandTemplate,
+} from './workflows/verify.js';

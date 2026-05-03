@@ -15,6 +15,8 @@ import {
   getOplgRecordCommandTemplate,
   getExploreSkillTemplate,
   getOplgExploreCommandTemplate,
+  getVerifySkillTemplate,
+  getOplgVerifyCommandTemplate,
   type SkillTemplate,
   type CommandTemplate,
 } from '../templates/index.js';
@@ -65,6 +67,11 @@ export function getSkillTemplates(): SkillTemplateEntry[] {
       dirName: 'openlog-explore',
       workflowId: 'explore',
     },
+    {
+      template: getVerifySkillTemplate(),
+      dirName: 'openlog-verify',
+      workflowId: 'verify',
+    },
   ];
 }
 
@@ -73,6 +80,7 @@ export function getCommandTemplates(): CommandTemplateEntry[] {
     { template: getOplgApplyCommandTemplate(), id: 'apply' },
     { template: getOplgRecordCommandTemplate(), id: 'record' },
     { template: getOplgExploreCommandTemplate(), id: 'explore' },
+    { template: getOplgVerifyCommandTemplate(), id: 'verify' },
   ];
 }
 
