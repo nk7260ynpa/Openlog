@@ -7,24 +7,24 @@ import {
 describe('getVerifySkillTemplate', () => {
   const skill = getVerifySkillTemplate();
 
-  it('回傳正確的 skill 名稱', () => {
+  it('returns correct skill name', () => {
     expect(skill.name).toBe('openlog-verify');
   });
 
-  it('description 包含 /oplg:verify 觸發描述', () => {
+  it('description mentions /oplg:verify trigger', () => {
     expect(skill.description).toContain('/oplg:verify');
   });
 
-  it('instructions 包含 read-only guardrail', () => {
+  it('instructions include read-only guardrail', () => {
     expect(skill.instructions).toContain('read-only');
   });
 
-  it('instructions 包含 verdict 邏輯（PASS / NEEDS_FIXES）', () => {
+  it('instructions include verdict logic (PASS / NEEDS_FIXES)', () => {
     expect(skill.instructions).toContain('PASS');
     expect(skill.instructions).toContain('NEEDS_FIXES');
   });
 
-  it('instructions 涵蓋所有 review 面向', () => {
+  it('instructions cover all review aspects', () => {
     const aspects = [
       'Correctness',
       'Security',
@@ -39,7 +39,7 @@ describe('getVerifySkillTemplate', () => {
     }
   });
 
-  it('包含預設 metadata', () => {
+  it('includes default metadata', () => {
     expect(skill.license).toBe('MIT');
     expect(skill.metadata?.author).toBe('openlog');
     expect(skill.metadata?.version).toBe('1.0');
@@ -49,24 +49,24 @@ describe('getVerifySkillTemplate', () => {
 describe('getOplgVerifyCommandTemplate', () => {
   const cmd = getOplgVerifyCommandTemplate();
 
-  it('回傳正確的 command 名稱', () => {
+  it('returns correct command name', () => {
     expect(cmd.name).toBe('OPLG: Verify');
   });
 
-  it('description 包含使用說明', () => {
+  it('description includes usage instructions', () => {
     expect(cmd.description).toContain('/oplg:verify');
   });
 
-  it('category 為 Workflow', () => {
+  it('category is Workflow', () => {
     expect(cmd.category).toBe('Workflow');
   });
 
-  it('tags 包含 verify 與 openlog', () => {
+  it('tags include verify and openlog', () => {
     expect(cmd.tags).toContain('verify');
     expect(cmd.tags).toContain('openlog');
   });
 
-  it('content 與 skill instructions 共用同一份 SHARED_BODY', () => {
+  it('content shares the same SHARED_BODY with skill instructions', () => {
     const skill = getVerifySkillTemplate();
     expect(cmd.content).toBe(skill.instructions);
   });

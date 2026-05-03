@@ -7,13 +7,13 @@ import {
 } from '../../../src/core/shared/skill-generation.js';
 
 describe('getSkillTemplates', () => {
-  it('回傳所有預期的 skill templates', () => {
+  it('returns all expected skill templates', () => {
     const templates = getSkillTemplates();
     const ids = templates.map((t) => t.workflowId);
     expect(ids).toEqual(['apply', 'record', 'explore', 'verify']);
   });
 
-  it('每個 template 都有必要欄位', () => {
+  it('each template has required fields', () => {
     for (const entry of getSkillTemplates()) {
       expect(entry.dirName).toBeTruthy();
       expect(entry.workflowId).toBeTruthy();
@@ -25,13 +25,13 @@ describe('getSkillTemplates', () => {
 });
 
 describe('getCommandTemplates', () => {
-  it('回傳所有預期的 command templates', () => {
+  it('returns all expected command templates', () => {
     const templates = getCommandTemplates();
     const ids = templates.map((t) => t.id);
     expect(ids).toEqual(['apply', 'record', 'explore', 'verify']);
   });
 
-  it('每個 template 都有必要欄位', () => {
+  it('each template has required fields', () => {
     for (const entry of getCommandTemplates()) {
       expect(entry.id).toBeTruthy();
       expect(entry.template.name).toBeTruthy();
@@ -42,11 +42,11 @@ describe('getCommandTemplates', () => {
 });
 
 describe('getCommandContents', () => {
-  it('數量與 getCommandTemplates 一致', () => {
+  it('count matches getCommandTemplates', () => {
     expect(getCommandContents().length).toBe(getCommandTemplates().length);
   });
 
-  it('每個 content 都有 id、name、body', () => {
+  it('each content has id, name, and body', () => {
     for (const content of getCommandContents()) {
       expect(content.id).toBeTruthy();
       expect(content.name).toBeTruthy();
@@ -56,7 +56,7 @@ describe('getCommandContents', () => {
 });
 
 describe('generateSkillContent', () => {
-  it('產出包含 YAML frontmatter 的 SKILL.md 內容', () => {
+  it('generates SKILL.md content with YAML frontmatter', () => {
     const template = getSkillTemplates()[0].template;
     const result = generateSkillContent(template, '0.5.4');
 
@@ -67,7 +67,7 @@ describe('generateSkillContent', () => {
     expect(result).toContain(template.instructions);
   });
 
-  it('使用預設值填補缺少的 metadata', () => {
+  it('fills missing metadata with defaults', () => {
     const minimal = {
       name: 'test-skill',
       description: 'A test skill',

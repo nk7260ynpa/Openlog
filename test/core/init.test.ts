@@ -16,7 +16,7 @@ describe('InitCommand', () => {
   });
 
   describe('execute (--tools none)', () => {
-    it('建立 openlog/ 目錄結構', async () => {
+    it('creates openlog/ directory structure', async () => {
       const cmd = new InitCommand({ tools: 'none' });
       await cmd.execute(tmpDir);
 
@@ -27,7 +27,7 @@ describe('InitCommand', () => {
       expect(await exists(path.join(openlogDir, 'project.md'))).toBe(true);
     });
 
-    it('project.md 包含專案名稱', async () => {
+    it('project.md contains project name', async () => {
       const cmd = new InitCommand({ tools: 'none' });
       await cmd.execute(tmpDir);
 
@@ -41,7 +41,7 @@ describe('InitCommand', () => {
   });
 
   describe('execute (--tools claude)', () => {
-    it('建立 .claude/ skills 和 commands', async () => {
+    it('creates .claude/ skills and commands', async () => {
       const cmd = new InitCommand({ tools: 'claude' });
       await cmd.execute(tmpDir);
 
@@ -59,7 +59,7 @@ describe('InitCommand', () => {
   });
 
   describe('execute (--tools github-copilot)', () => {
-    it('建立 .github/prompts/ commands（不建立 skills）', async () => {
+    it('creates .github/prompts/ commands (no skills)', async () => {
       const cmd = new InitCommand({ tools: 'github-copilot' });
       await cmd.execute(tmpDir);
 
@@ -72,7 +72,7 @@ describe('InitCommand', () => {
   });
 
   describe('idempotency', () => {
-    it('重複執行不改變內容（全部 unchanged）', async () => {
+    it('repeated execution does not change content (all unchanged)', async () => {
       const cmd = new InitCommand({ tools: 'all' });
       await cmd.execute(tmpDir);
 
@@ -87,7 +87,7 @@ describe('InitCommand', () => {
   });
 
   describe('--force', () => {
-    it('force 模式重新產生 project.md', async () => {
+    it('force mode regenerates project.md', async () => {
       const cmd = new InitCommand({ tools: 'none' });
       await cmd.execute(tmpDir);
 
@@ -103,15 +103,15 @@ describe('InitCommand', () => {
     });
   });
 
-  describe('parseToolsArg 錯誤處理', () => {
-    it('無效的 tool name 拋出錯誤', async () => {
+  describe('parseToolsArg error handling', () => {
+    it('throws error for invalid tool name', async () => {
       const cmd = new InitCommand({ tools: 'invalid-tool' });
       await expect(cmd.execute(tmpDir)).rejects.toThrow('Unknown tools');
     });
   });
 
-  describe('目標路徑不存在時自動建立', () => {
-    it('建立不存在的目標目錄', async () => {
+  describe('auto-creates target path when it does not exist', () => {
+    it('creates non-existent target directory', async () => {
       const nested = path.join(tmpDir, 'deep', 'nested', 'project');
       const cmd = new InitCommand({ tools: 'none' });
       await cmd.execute(nested);

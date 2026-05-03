@@ -22,7 +22,7 @@ const sampleContent: CommandContent = {
 };
 
 describe('generateCommand', () => {
-  it('使用 adapter 產出正確路徑與內容', () => {
+  it('generates correct path and content using adapter', () => {
     const result = generateCommand(sampleContent, fakeAdapter);
     expect(result.path).toBe('.fake/commands/test.md');
     expect(result.fileContent).toBe('# Test Command\n\nHello world');
@@ -30,7 +30,7 @@ describe('generateCommand', () => {
 });
 
 describe('generateCommands', () => {
-  it('批次產出多個 commands', () => {
+  it('generates multiple commands in batch', () => {
     const second: CommandContent = { ...sampleContent, id: 'second', name: 'Second' };
     const results = generateCommands([sampleContent, second], fakeAdapter);
     expect(results).toHaveLength(2);
@@ -38,7 +38,7 @@ describe('generateCommands', () => {
     expect(results[1].path).toBe('.fake/commands/second.md');
   });
 
-  it('空陣列回傳空陣列', () => {
+  it('returns empty array for empty input', () => {
     expect(generateCommands([], fakeAdapter)).toEqual([]);
   });
 });

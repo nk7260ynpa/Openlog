@@ -14,7 +14,7 @@ interface ValidationIssue {
 }
 
 export interface ValidateCommandOptions {
-  /** 要驗證的目標路徑（預設為當前目錄） */
+  /** Target path to validate (defaults to current directory) */
   path?: string;
 }
 

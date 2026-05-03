@@ -3,12 +3,12 @@ import { claudeAdapter } from '../../../../src/core/command-generation/adapters/
 import type { CommandContent } from '../../../../src/core/command-generation/types.js';
 
 describe('claudeAdapter', () => {
-  it('toolId 為 claude', () => {
+  it('toolId is claude', () => {
     expect(claudeAdapter.toolId).toBe('claude');
   });
 
   describe('getFilePath', () => {
-    it('產出 .claude/commands/oplg/<id>.md 路徑', () => {
+    it('generates .claude/commands/oplg/<id>.md path', () => {
       const result = claudeAdapter.getFilePath('apply');
       expect(result).toBe('.claude/commands/oplg/apply.md');
     });
@@ -24,7 +24,7 @@ describe('claudeAdapter', () => {
       body: 'Do the thing.',
     };
 
-    it('包含 YAML frontmatter 和 body', () => {
+    it('includes YAML frontmatter and body', () => {
       const result = claudeAdapter.formatFile(content);
       expect(result).toContain('---');
       expect(result).toContain('name: "OPLG: Test"');
@@ -34,7 +34,7 @@ describe('claudeAdapter', () => {
       expect(result).toContain('Do the thing.');
     });
 
-    it('YAML-escape 含特殊字元的值', () => {
+    it('YAML-escapes values with special characters', () => {
       const special: CommandContent = {
         ...content,
         name: 'Name: with colon',
