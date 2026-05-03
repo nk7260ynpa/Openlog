@@ -181,7 +181,7 @@ function runCommand(cmd, args, options = {}) {
  * intentionally ignored — they're rare in this project and not worth a full
  * semver dependency.
  */
-function compareVersions(a, b) {
+export function compareVersions(a, b) {
     const parse = (raw) => raw.replace(/^v/, '').split('-')[0].split('.').map((part) => {
         const n = Number.parseInt(part, 10);
         return Number.isFinite(n) ? n : 0;

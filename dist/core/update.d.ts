@@ -39,4 +39,13 @@ export declare class UpdateCommand {
     private cloneRepo;
     private runNpmInstallGlobal;
 }
+/**
+ * Compare two semver-like version strings.
+ *
+ * Returns a positive number when `a` > `b`, negative when `a` < `b`, and `0`
+ * when they're equivalent. Pre-release suffixes (e.g. `1.0.0-rc.1`) are
+ * intentionally ignored — they're rare in this project and not worth a full
+ * semver dependency.
+ */
+export declare function compareVersions(a: string, b: string): number;
 //# sourceMappingURL=update.d.ts.map

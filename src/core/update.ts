@@ -236,7 +236,7 @@ function runCommand(cmd: string, args: string[], options: RunOptions = {}): Prom
  * intentionally ignored — they're rare in this project and not worth a full
  * semver dependency.
  */
-function compareVersions(a: string, b: string): number {
+export function compareVersions(a: string, b: string): number {
   const parse = (raw: string): number[] =>
     raw.replace(/^v/, '').split('-')[0].split('.').map((part) => {
       const n = Number.parseInt(part, 10);
