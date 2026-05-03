@@ -52,6 +52,7 @@ Everything after \`/oplg:apply <action>\` is the action description. If the desc
 **Guardrails**
 
 - Allowed git operations without further confirmation: \`git add\`, \`git commit\`, \`git push\` to the current branch's existing upstream. **Not allowed without explicit user instruction**: \`reset --hard\`, \`push --force\`, \`push --force-with-lease\`, branch deletion, history rewrites.
+- The \`openlog/\` directory is **read-only** for this workflow. You may read it (e.g. \`openlog/project.md\`, \`openlog/specs/\`, \`openlog/changes/\`) for context, but **must not** create, modify, rename, or delete any file under \`openlog/\`. Writing to \`openlog/\` is the exclusive responsibility of \`/oplg:record\`. If an entry seems to require an \`openlog/\` change, stop and ask the user to run \`/oplg:record\` instead.
 - README.md updates are part of this workflow (step 4). Other docs (\`CLAUDE.md\`, \`settings.json\`, etc.) are still out of scope unless the entry explicitly targets them — if you discover such changes are needed, mention them and let the user decide.
 - Do not leave \`TODO\` / \`FIXME\` / \`HACK\` markers in the final commit (unless the entry itself is to add a TODO).
 - If the action is high-risk (mass deletion, data overwrite, CI/CD changes, secret handling), **stop and confirm** before acting.

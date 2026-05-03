@@ -1,1 +1,1 @@
-{"version":3,"file":"apply.d.ts","sourceRoot":"","sources":["../../../../src/core/templates/workflows/apply.ts"],"names":[],"mappings":"AAAA;;;;;;;GAOG;AAEH,OAAO,KAAK,EAAE,aAAa,EAAE,eAAe,EAAE,MAAM,aAAa,CAAC;AAkDlE,wBAAgB,qBAAqB,IAAI,aAAa,CAUrD;AAED,wBAAgB,2BAA2B,IAAI,eAAe,CAQ7D"}
+{"version":3,"file":"apply.d.ts","sourceRoot":"","sources":["../../../../src/core/templates/workflows/apply.ts"],"names":[],"mappings":"AAAA;;;;;;;GAOG;AAEH,OAAO,KAAK,EAAE,aAAa,EAAE,eAAe,EAAE,MAAM,aAAa,CAAC;AAmDlE,wBAAgB,qBAAqB,IAAI,aAAa,CAUrD;AAED,wBAAgB,2BAA2B,IAAI,eAAe,CAQ7D"}
