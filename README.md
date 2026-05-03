@@ -249,7 +249,7 @@ Available flags:
 - [x] `openlog init`: create `openlog/` and pick AI-tool scaffolding
 - [x] Install `/oplg:apply`, `/oplg:record`, `/oplg:explore`, and `/oplg:verify` commands / skills under `.claude/` and `.github/`
 - [x] `openlog update`: auto-update the globally-installed CLI from GitHub
-- [ ] Spec / change management subcommands (list, validate, archive, ...)
+- [ ] `openlog validate`: validate file structure and format under `openlog/`
 
 ## License
 
