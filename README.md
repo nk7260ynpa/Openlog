@@ -107,18 +107,18 @@ only a partial set of `.d.ts` files (no `bin/`, no compiled `.js`),
 which is an npm bug, not an Openlog problem. Use one of the methods
 above instead. If you have already attempted a git-URL install and
 have a stale symlink at
-`~/.npm-global/lib/node_modules/@chen/openlog`, remove it with
+`~/.npm-global/lib/node_modules/@nk7260ynpa/openlog`, remove it with
 `unlink` before re-installing.
 
 ### After publishing to npm
 
-> **Not yet published.** `@chen/openlog` is not on npm yet. The
+> **Not yet published.** `@nk7260ynpa/openlog` is not on npm yet. The
 > instructions below will apply once the package is published.
 
 ```bash
-npm install -g @chen/openlog@latest
+npm install -g @nk7260ynpa/openlog@latest
 # or
-pnpm add -g @chen/openlog@latest
+pnpm add -g @nk7260ynpa/openlog@latest
 ```
 
 ## Usage
