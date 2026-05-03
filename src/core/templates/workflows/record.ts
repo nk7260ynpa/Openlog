@@ -168,7 +168,7 @@ export function getRecordSkillTemplate(): SkillTemplate {
     instructions: SHARED_BODY,
     license: 'MIT',
     compatibility: 'Requires openlog CLI and an initialized openlog/ directory.',
-    metadata: { author: 'openlog', version: '0.5.9' },
+    metadata: { author: 'openlog', version: '1.0' },
   };
 }
 
