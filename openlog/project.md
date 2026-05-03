@@ -39,9 +39,11 @@ described in the repo-root `README.md` and `CLAUDE.md`.
   supported global-install path. `dist/` is committed to the repo
   (since v0.3.5) so global installs do not need a TypeScript toolchain.
 - **Tests:** [Vitest](https://vitest.dev/). Run with `npm test`
-  (or `npx vitest run`). 42 unit/integration tests across 8 files.
-- **CI:** GitHub Actions (`.github/workflows/ci.yml`). Triggered on
-  `v*` tag push; runs build + test on a Node 20/22 matrix.
+  (or `npx vitest run`). 53 unit/integration tests across 9 files.
+  Coverage reporting via `npm run test:coverage` (`@vitest/coverage-v8`).
+- **CI:** GitHub Actions (`.github/workflows/ci.yml`). Build-only check
+  on PRs targeting `main`; full build + test on `v*` tag push. Node
+  20/22 matrix.
 
 ## Workflow surface ownership
 
@@ -53,7 +55,7 @@ authoritative wording lives in `openlog/specs/oplg-pipeline-contract.md`
 |-------|----------|-----------|----------|----------------|
 | 1 | `/oplg:explore` | nothing | everything | everything |
 | 2 | `/oplg:apply` | source code, `README.md`, `dist/`, configuration outside `openlog/` | everything | the entire `openlog/` directory |
-| — | `/oplg:verify` | nothing (read-only) | everything | everything |
+| 2→3 | `/oplg:verify` (optional gate) | nothing (read-only) | everything | everything |
 | 3 | `/oplg:record` | the entire `openlog/` directory (`project.md`, `specs/`, `changes/`) | everything | anything outside `openlog/` |
 
 Drift across surfaces is reported via handoff lines, never via
