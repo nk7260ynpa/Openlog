@@ -52,7 +52,7 @@ Openlog/
 | Module format | ESM (`"type": "module"`) |
 | Build | `build.js` invokes the local `tsc`, output to `dist/` |
 | Test | [Vitest](https://vitest.dev/) |
-| CI | GitHub Actions — runs on tag push (`v*`) |
+| CI | GitHub Actions — build on PR, build + test on tag push (`v*`) |
 | Bin entry | `bin/openlog.js` → `dist/cli/index.js` |
 
 ## Install
