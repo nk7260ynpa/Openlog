@@ -228,6 +228,7 @@ Available flags:
 | `npm run build` | One-shot compile (clean `dist/`, then `tsc`) |
 | `npm test` | Run unit tests via [Vitest](https://vitest.dev/) |
 | `npm run test:watch` | Run tests in watch mode |
+| `npm run test:coverage` | Run tests with V8 coverage report |
 | `npm run dev` | TypeScript watch mode |
 | `npm run dev:cli` | Compile and run `bin/openlog.js` |
 
