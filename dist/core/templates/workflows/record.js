@@ -85,17 +85,16 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
    - [ ] TODO 2
    \`\`\`
 
-4. **Sync internal docs (when applicable)**
+4. **Sync internal docs under \`openlog/\` (when applicable)**
 
-   Based on the change, **proactively** decide whether the following files need updates; if so, update them and list each one in the final report.
+   This workflow may **only** create or modify files under the \`openlog/\` directory. Anything outside \`openlog/\` (e.g. \`README.md\`, \`CLAUDE.md\`, \`CHANGELOG.md\`, source code, configuration) is **out of scope** and must not be modified here — those belong to \`/oplg:apply\` or another workflow.
 
-   \`README.md\` is **out of scope** for \`/oplg:record\` — it is owned by \`/oplg:apply\` (or another workflow) and must not be modified here.
+   Based on the change, **proactively** decide whether the following \`openlog/\`-internal docs need updates; if so, update them and list each one in the final report.
 
    - \`openlog/project.md\`: update when the tech stack, layout, or workflow changes.
    - Existing specs under \`openlog/specs/\`: update or add a spec when the implementation diverges.
-   - \`CHANGELOG.md\` (if present): add an entry following the project's existing style.
-   - \`CLAUDE.md\` (if present and team-shared): only touch when the change affects AI collaboration workflows or conventions.
-   - **Do not** modify the user's global \`~/.claude/CLAUDE.md\`.
+
+   If you find that an out-of-\`openlog/\` doc clearly needs updating (e.g. \`README.md\` drifted), **do not** modify it here. List it under "needs user decision" in the final report so the user can re-run \`/oplg:apply\` to handle it.
 
    Use minimal diffs for each update; do not rewrite whole documents.
 
@@ -117,10 +116,10 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
 **Guardrails**
 
 - Allowed git operations without further confirmation: \`git add\`, \`git commit\`, \`git push\` to the current branch's existing upstream. **Not allowed without explicit user instruction**: \`reset --hard\`, \`push --force\`, branch deletion, history rewrites.
-- Do **not** modify \`README.md\` from this workflow; defer to \`/oplg:apply\` (or whichever workflow owns user-facing docs) for README updates.
+- This workflow may **only** create or modify files under \`openlog/\`. Do **not** touch any file outside \`openlog/\` — including \`README.md\`, \`CLAUDE.md\`, \`CHANGELOG.md\`, source code, or settings. Defer all out-of-\`openlog/\` changes to \`/oplg:apply\` (or whichever workflow owns them).
 - Record content must come from real diffs / commits / conversation facts; **do not** fabricate code changes or test results.
 - If a same-named file already exists in \`openlog/changes/\`: pick the next free \`<NN>\` counter; **do not** overwrite the existing one.
-- For internal docs you are unsure about, list them in a "needs user decision" section instead of forcing a change.
+- For \`openlog/\`-internal docs you are unsure about, list them in a "needs user decision" section instead of forcing a change.
 
 **Output format example**
 
@@ -139,7 +138,7 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
 - pushed to origin/main
 
 ### Needs user decision
-- Should we add an init-flags spec under \`openlog/specs/\`?
+- README drifted on the new --dry-run flag — please run \`/oplg:apply update README for --dry-run\` to sync it (out of scope for /oplg:record).
 \`\`\`
 `;
 export function getRecordSkillTemplate() {
