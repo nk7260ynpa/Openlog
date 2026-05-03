@@ -26,7 +26,8 @@ Openlog/
 │       ├── templates/                      # Skill / slash command bodies (tool-neutral)
 │       │   ├── types.ts
 │       │   ├── workflows/apply.ts          # /oplg:apply template
-│       │   └── workflows/record.ts         # /oplg:record template
+│       │   ├── workflows/record.ts         # /oplg:record template
+│       │   └── workflows/explore.ts        # /oplg:explore template
 │       ├── command-generation/             # Convert templates into per-tool file formats
 │       │   ├── adapters/claude.ts          # → .claude/commands/oplg/<id>.md
 │       │   └── adapters/github-copilot.ts  # → .github/prompts/oplg-<id>.prompt.md
@@ -144,21 +145,24 @@ my-project/
 ├── .claude/                         # When Claude Code is selected
 │   ├── skills/
 │   │   ├── openlog-apply/SKILL.md   # Skill for /oplg:apply
-│   │   └── openlog-record/SKILL.md  # Skill for /oplg:record
+│   │   ├── openlog-record/SKILL.md  # Skill for /oplg:record
+│   │   └── openlog-explore/SKILL.md # Skill for /oplg:explore
 │   └── commands/oplg/
 │       ├── apply.md                 # → /oplg:apply
-│       └── record.md                # → /oplg:record
+│       ├── record.md                # → /oplg:record
+│       └── explore.md               # → /oplg:explore
 └── .github/                         # When GitHub Copilot is selected
     └── prompts/
         ├── oplg-apply.prompt.md
-        └── oplg-record.prompt.md
+        ├── oplg-record.prompt.md
+        └── oplg-explore.prompt.md
 ```
 
 ### Supported AI tools
 
 | Tool | `--tools` value | Created directory | Skills | Slash commands |
 |------|-----------------|-------------------|--------|----------------|
-| Claude Code | `claude` | `.claude/` | ✅ | ✅ `/oplg:apply`, `/oplg:record` |
+| Claude Code | `claude` | `.claude/` | ✅ | ✅ `/oplg:apply`, `/oplg:record`, `/oplg:explore` |
 | GitHub Copilot | `github-copilot` | `.github/` | ➖ | ✅ `oplg-*.prompt.md` |
 
 ### Update to the latest version: `openlog update`
@@ -204,6 +208,7 @@ Available flags:
 
 | Command | Purpose |
 |---------|---------|
+| `/oplg:explore <topic>` | **Read-only** investigation that maps out the relevant code/docs and returns a structured report (summary, key files with `file:line` citations, gaps, suggested next actions, and a paste-ready handoff line for `/oplg:apply`). Does **not** modify any file, run builds, or commit; any code change must be done via `/oplg:apply` afterwards. |
 | `/oplg:apply <action>` | Modify code based on the user's described action: plan, edit, sync `README.md` when user-facing behavior changes, locally verify, then commit and push **per sub-task** (one entry → one commit → one push). |
 | `/oplg:record` | Find every entry from the current session that is **not yet recorded** under `openlog/changes/` and write one record file per entry. **Title is auto-derived from the actual diff** (no manual title needed); filenames use `<YYYY-MM-DD>_<NN>-<slug>.md` where `<NN>` is a per-day completion counter (`_01`, `_02`, ...). Internal docs such as `openlog/project.md` and `openlog/specs/` are updated when applicable; `README.md` is **not** touched by this workflow (that is owned by `/oplg:apply`). After writing records, the workflow commits and pushes. |
 
@@ -219,7 +224,7 @@ Available flags:
 
 - [x] `openlog --version`
 - [x] `openlog init`: create `openlog/` and pick AI-tool scaffolding
-- [x] Install `/oplg:apply` and `/oplg:record` commands / skills under `.claude/` and `.github/`
+- [x] Install `/oplg:apply`, `/oplg:record`, and `/oplg:explore` commands / skills under `.claude/` and `.github/`
 - [x] `openlog update`: auto-update the globally-installed CLI from GitHub
 - [ ] Spec / change management subcommands (list, validate, archive, ...)
 

@@ -1,1 +1,1 @@
-{"version":3,"file":"tool-detection.js","sourceRoot":"","sources":["../../../src/core/shared/tool-detection.ts"],"names":[],"mappings":"AAAA;;;;;GAKG;AAEH,MAAM,CAAC,MAAM,WAAW,GAAG,CAAC,eAAe,EAAE,gBAAgB,CAAU,CAAC;AAGxE,MAAM,CAAC,MAAM,WAAW,GAAG,CAAC,OAAO,EAAE,QAAQ,CAAU,CAAC"}
+{"version":3,"file":"tool-detection.js","sourceRoot":"","sources":["../../../src/core/shared/tool-detection.ts"],"names":[],"mappings":"AAAA;;;;;GAKG;AAEH,MAAM,CAAC,MAAM,WAAW,GAAG,CAAC,eAAe,EAAE,gBAAgB,EAAE,iBAAiB,CAAU,CAAC;AAG3F,MAAM,CAAC,MAAM,WAAW,GAAG,CAAC,OAAO,EAAE,QAAQ,EAAE,SAAS,CAAU,CAAC"}

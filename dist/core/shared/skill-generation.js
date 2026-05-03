@@ -7,7 +7,7 @@
  *   - `generateSkillContent()`: wrap a SkillTemplate into a SKILL.md with
  *     YAML frontmatter.
  */
-import { getApplySkillTemplate, getOplgApplyCommandTemplate, getRecordSkillTemplate, getOplgRecordCommandTemplate, } from '../templates/index.js';
+import { getApplySkillTemplate, getOplgApplyCommandTemplate, getRecordSkillTemplate, getOplgRecordCommandTemplate, getExploreSkillTemplate, getOplgExploreCommandTemplate, } from '../templates/index.js';
 export function getSkillTemplates() {
     return [
         {
@@ -20,12 +20,18 @@ export function getSkillTemplates() {
             dirName: 'openlog-record',
             workflowId: 'record',
         },
+        {
+            template: getExploreSkillTemplate(),
+            dirName: 'openlog-explore',
+            workflowId: 'explore',
+        },
     ];
 }
 export function getCommandTemplates() {
     return [
         { template: getOplgApplyCommandTemplate(), id: 'apply' },
         { template: getOplgRecordCommandTemplate(), id: 'record' },
+        { template: getOplgExploreCommandTemplate(), id: 'explore' },
     ];
 }
 export function getCommandContents() {

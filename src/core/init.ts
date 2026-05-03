@@ -364,7 +364,7 @@ Describe the project's goals, scope, and target users here.
         }
       }
       console.log();
-      console.log(chalk.dim('Usage: run /oplg:apply <action> or /oplg:record inside your AI tool.'));
+      console.log(chalk.dim('Usage: run /oplg:explore <topic>, /oplg:apply <action>, or /oplg:record inside your AI tool.'));
     }
   }
 }

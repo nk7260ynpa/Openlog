@@ -13,3 +13,8 @@ export {
   getRecordSkillTemplate,
   getOplgRecordCommandTemplate,
 } from './workflows/record.js';
+
+export {
+  getExploreSkillTemplate,
+  getOplgExploreCommandTemplate,
+} from './workflows/explore.js';

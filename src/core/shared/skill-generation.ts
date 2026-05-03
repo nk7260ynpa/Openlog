@@ -13,6 +13,8 @@ import {
   getOplgApplyCommandTemplate,
   getRecordSkillTemplate,
   getOplgRecordCommandTemplate,
+  getExploreSkillTemplate,
+  getOplgExploreCommandTemplate,
   type SkillTemplate,
   type CommandTemplate,
 } from '../templates/index.js';
@@ -58,6 +60,11 @@ export function getSkillTemplates(): SkillTemplateEntry[] {
       dirName: 'openlog-record',
       workflowId: 'record',
     },
+    {
+      template: getExploreSkillTemplate(),
+      dirName: 'openlog-explore',
+      workflowId: 'explore',
+    },
   ];
 }
 
@@ -65,6 +72,7 @@ export function getCommandTemplates(): CommandTemplateEntry[] {
   return [
     { template: getOplgApplyCommandTemplate(), id: 'apply' },
     { template: getOplgRecordCommandTemplate(), id: 'record' },
+    { template: getOplgExploreCommandTemplate(), id: 'explore' },
   ];
 }
 
