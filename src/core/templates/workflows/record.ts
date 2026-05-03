@@ -95,7 +95,15 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
    Based on the change, **proactively** decide whether the following \`openlog/\`-internal docs need updates; if so, update them and list each one in the final report.
 
    - \`openlog/project.md\`: update when the tech stack, layout, or workflow changes.
-   - Existing specs under \`openlog/specs/\`: update or add a spec when the implementation diverges.
+   - Existing specs under \`openlog/specs/\`: update or add a spec when **any** of the following applies to a recorded entry:
+     1. A user-facing CLI flag, subcommand, or argument is added, removed, or renamed.
+     2. A public API contract changes (exported function signature, config schema, template output format).
+     3. A cross-workflow invariant is affected (e.g. surface ownership, handoff protocol, file naming convention).
+     4. An existing spec's Requirement or Scenario no longer matches the implementation (the WHEN/THEN drifted).
+     5. A capability is deprecated or removed (the spec must note Reason and Migration).
+     6. A breaking change is introduced (anything that forces downstream consumers to adapt).
+
+     Do **not** update specs for: internal refactors that preserve behavior, performance optimizations, dependency upgrades that don't change behavior, bug fixes that restore originally-specified behavior, or test-only changes.
 
    If you find that an out-of-\`openlog/\` doc clearly needs updating (e.g. \`README.md\` drifted), **do not** modify it here. List it under "needs user decision" in the final report so the user can re-run \`/oplg:apply\` to handle it.
 
