@@ -63,6 +63,23 @@ export function createProgram() {
             process.exit(1);
         }
     });
+    program
+        .command('validate [path]')
+        .description('Validate file structure and format under the openlog/ directory')
+        .action(async (targetPath) => {
+        try {
+            const { ValidateCommand } = await import('../core/validate.js');
+            const validateCommand = new ValidateCommand({
+                path: targetPath ? path.resolve(targetPath) : undefined,
+            });
+            await validateCommand.execute();
+        }
+        catch (error) {
+            console.log();
+            ora().fail(`Error: ${error.message}`);
+            process.exit(1);
+        }
+    });
     return program;
 }
 const program = createProgram();

@@ -4,7 +4,7 @@
 
 AI-native logging companion CLI, built on the same TypeScript + Node.js stack as [OpenSpec](https://github.com/Fission-AI/OpenSpec).
 
-> The current release implements `openlog --version`, `openlog init`, and `openlog update`. More commands will follow.
+> The current release implements `openlog --version`, `openlog init`, `openlog update`, and `openlog validate`.
 
 ## Requirements
 
@@ -20,11 +20,12 @@ Openlog/
 ├── src/
 │   ├── index.ts                            # Library entry point
 │   ├── cli/
-│   │   └── index.ts                        # commander definitions (--version, init, update)
+│   │   └── index.ts                        # commander definitions (--version, init, update, validate)
 │   └── core/
 │       ├── config.ts                       # AI tool list and constants
 │       ├── init.ts                         # InitCommand: create openlog/ + skills/commands
 │       ├── update.ts                       # UpdateCommand: re-install latest source globally
+│       ├── validate.ts                     # ValidateCommand: check openlog/ file formats
 │       ├── templates/                      # Skill / slash command bodies (tool-neutral)
 │       │   ├── types.ts
 │       │   ├── workflows/apply.ts          # /oplg:apply template
@@ -221,6 +222,30 @@ Available flags:
 | `--npm <bin>` | npm-compatible binary used for the global install. Defaults to `npm`. |
 | `--repo <url>` | Override the git remote URL. Defaults to the public Openlog repo. |
 
+### Validate the openlog directory: `openlog validate`
+
+Check that the `openlog/` directory follows the expected structure and that
+every file under `changes/` and `specs/` uses the correct format.
+
+```bash
+# Validate the current directory
+openlog validate
+
+# Validate a specific project
+openlog validate ./my-project
+```
+
+Checks performed:
+
+| Check | Expectation |
+|-------|-------------|
+| `openlog/project.md` exists | Must be present and start with a `# ` heading |
+| `openlog/changes/` filenames | Must match `<YYYY-MM-DD>_<NN>-<slug>.md` or `<YYYY-MM-DD>-<slug>.md` |
+| `openlog/changes/*.md` header | Must start with `# ` and contain `**Date:**` and `**Author:**` fields |
+| `openlog/specs/*.md` header | Must start with `# ` and contain a `**Status:**` field |
+
+Exit code is `0` when all checks pass, `1` when issues are found.
+
 ### Slash commands
 
 `openlog init` installs the following slash commands for the selected AI tools:
@@ -249,7 +274,7 @@ Available flags:
 - [x] `openlog init`: create `openlog/` and pick AI-tool scaffolding
 - [x] Install `/oplg:apply`, `/oplg:record`, `/oplg:explore`, and `/oplg:verify` commands / skills under `.claude/` and `.github/`
 - [x] `openlog update`: auto-update the globally-installed CLI from GitHub
-- [ ] `openlog validate`: validate file structure and format under `openlog/`
+- [x] `openlog validate`: validate file structure and format under `openlog/`
 
 ## License
 

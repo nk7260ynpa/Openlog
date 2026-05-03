@@ -79,6 +79,23 @@ export function createProgram(): Command {
       }
     });
 
+  program
+    .command('validate [path]')
+    .description('Validate file structure and format under the openlog/ directory')
+    .action(async (targetPath: string | undefined) => {
+      try {
+        const { ValidateCommand } = await import('../core/validate.js');
+        const validateCommand = new ValidateCommand({
+          path: targetPath ? path.resolve(targetPath) : undefined,
+        });
+        await validateCommand.execute();
+      } catch (error) {
+        console.log();
+        ora().fail(`Error: ${(error as Error).message}`);
+        process.exit(1);
+      }
+    });
+
   return program;
 }
 
