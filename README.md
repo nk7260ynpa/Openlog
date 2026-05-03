@@ -32,10 +32,18 @@ Openlog/
 │       │   ├── workflows/explore.ts        # /oplg:explore template
 │       │   └── workflows/verify.ts         # /oplg:verify template
 │       ├── command-generation/             # Convert templates into per-tool file formats
+│       │   ├── generator.ts                # Orchestrates template → file generation
+│       │   ├── types.ts                    # Adapter interface definitions
+│       │   ├── registry.ts                 # CommandAdapterRegistry: lookup adapter by toolId
 │       │   ├── adapters/claude.ts          # → .claude/commands/oplg/<id>.md
 │       │   └── adapters/github-copilot.ts  # → .github/prompts/oplg-<id>.prompt.md
-│       └── shared/                         # SkillTemplate aggregation + frontmatter generation
+│       └── shared/
+│           ├── skill-generation.ts         # SkillTemplate aggregation + frontmatter generation
+│           └── tool-detection.ts           # Detect installed AI tools in target project
+├── test/                                   # Unit tests (Vitest)
+│   └── core/                               # Mirrors src/core/ structure (9 test files)
 ├── build.js                                # Drives the TypeScript compiler into dist/
+├── vitest.config.ts                        # Vitest configuration (V8 coverage)
 ├── tsconfig.json                           # TS config (ES2022 / NodeNext / strict)
 ├── package.json                            # ESM, bin entry, scripts
 ├── .gitignore
