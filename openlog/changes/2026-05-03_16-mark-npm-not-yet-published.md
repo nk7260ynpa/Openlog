@@ -1,4 +1,4 @@
-# docs: 標注 npm 尚未發佈，避免使用者誤裝
+# docs: Note that npm package is not yet published
 
 - **Date:** 2026-05-03
 - **Author:** nk7260ynpa
@@ -6,24 +6,24 @@
 
 ## Summary
 
-README.md 的 "After publishing to npm" 區段前加上 blockquote 說明 `@chen/openlog` 尚未發佈到 npm registry，避免使用者照做後遇到 404 錯誤。
+Added a blockquote before the "After publishing to npm" section in README.md stating that `@nk7260ynpa/openlog` is not yet published to npm registry, preventing users from following the instructions and encountering a 404 error.
 
 ## Motivation / context
 
-`/oplg:explore` 調查發現 `npm view @chen/openlog` 回傳 404，但 README 中已列出 `npm install -g @chen/openlog@latest` 指引，缺乏「尚未發佈」的提示。
+An `/oplg:explore` investigation found that `npm view @nk7260ynpa/openlog` returned 404, but README already listed `npm install -g @nk7260ynpa/openlog@latest` instructions without any "not yet published" notice.
 
 ## Key changes
 
-- `README.md`: 在 "After publishing to npm" 標題下方新增 blockquote，以 bold 標注 "Not yet published" 並說明待發佈後適用。
+- `README.md`: Added a blockquote below the "After publishing to npm" heading, with bold "Not yet published" note explaining when the instructions will apply.
 
 ## Impact
 
-- 純文件變更，不影響任何功能或 API。
+- Documentation-only change, no impact on any functionality or API.
 
 ## Verification
 
-- `npm run build` 編譯通過。
+- `npm run build` compiled successfully.
 
 ## Follow-ups
 
-- [ ] 正式發佈到 npm 後，移除此 blockquote 提示。
+- [ ] Remove this blockquote notice after officially publishing to npm.

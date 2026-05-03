@@ -6,29 +6,27 @@
 
 ## Summary
 
-版本從 0.5.7 升至 0.5.8，涵蓋本次 session 的所有變更：verify workflow unit
-tests、PR-triggered CI check、vitest coverage reporting。
+Bumped version from 0.5.7 to 0.5.8, covering all changes from this session: verify workflow unit tests, PR-triggered CI check, and vitest coverage reporting.
 
 ## Motivation / context
 
-本次 session 完成了多項 follow-up 改善（測試、CI、coverage），打包為一個
-新的 patch 版本。使用者指示先升版但不打 tag。
+This session completed several follow-up improvements (tests, CI, coverage), packaged as a new patch version. User instructed to bump version but not create a tag.
 
 ## Key changes
 
 - `package.json`: version 0.5.7 → 0.5.8
-- `package-lock.json`: version 同步更新
+- `package-lock.json`: version synced
 
 ## Impact
 
-- 版本號更新，無 breaking change。
-- 尚未打 tag，全域安裝仍指向 main branch HEAD。
+- Version number update, no breaking change.
+- No tag created yet; global install still points to main branch HEAD.
 
 ## Verification
 
-- `npm run build`: 編譯通過，輸出顯示 `@chen/openlog@0.5.8`
+- `npm run build`: compiled successfully, output shows `@nk7260ynpa/openlog@0.5.8`
 - `npm test`: 53/53 tests passed
 
 ## Follow-ups
 
-- [ ] 無
+- [ ] None

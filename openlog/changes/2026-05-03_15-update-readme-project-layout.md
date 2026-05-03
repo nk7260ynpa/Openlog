@@ -1,4 +1,4 @@
-# docs: 更新 README Project layout 樹狀圖
+# docs: Update README Project layout tree
 
 - **Date:** 2026-05-03
 - **Author:** nk7260ynpa
@@ -6,25 +6,25 @@
 
 ## Summary
 
-README.md 的 Project layout 樹狀圖先前只列出代表性檔案，遺漏了多個實際存在的模組。此次補齊 `command-generation/` 下的 `generator.ts`、`types.ts`、`registry.ts`，`shared/` 下的 `skill-generation.ts`、`tool-detection.ts`，以及 `test/` 目錄和 `vitest.config.ts`。
+The README.md Project layout tree previously listed only representative files, omitting several actually existing modules. This update adds `generator.ts`, `types.ts`, `registry.ts` under `command-generation/`, `skill-generation.ts` and `tool-detection.ts` under `shared/`, and the `test/` directory along with `vitest.config.ts`.
 
 ## Motivation / context
 
-`/oplg:explore` 調查發現樹狀圖與實際檔案結構不一致，對新讀者可能產生誤導——尤其是 Development commands 區段列出了 `npm test` 等指令，但樹狀圖中完全看不到 `test/` 目錄的存在。
+An `/oplg:explore` investigation found the tree was inconsistent with the actual file structure, potentially misleading new readers — especially since the Development commands section listed `npm test` and similar commands, but the tree showed no `test/` directory at all.
 
 ## Key changes
 
-- `README.md`: Project layout 樹狀圖新增 9 行，補上 `command-generation/` 內部模組、`shared/` 子檔案、`test/` 目錄、`vitest.config.ts`。
+- `README.md`: Added 9 lines to the Project layout tree, covering `command-generation/` internal modules, `shared/` subfiles, `test/` directory, and `vitest.config.ts`.
 
 ## Impact
 
-- 純文件變更，不影響任何功能或 API。
+- Documentation-only change, no impact on any functionality or API.
 
 ## Verification
 
-- `npm run build` 編譯通過。
-- 樹狀圖中每個新增路徑均經 `/oplg:verify` 確認實際存在於磁碟。
+- `npm run build` compiled successfully.
+- Each newly added path in the tree was confirmed to actually exist on disk via `/oplg:verify`.
 
 ## Follow-ups
 
-- [ ] 樹狀圖中 `test/core/` 註解寫 "9 test files"，未來測試增加時需同步更新數字。
+- [ ] The tree comment for `test/core/` says "9 test files" — this number needs to be updated when tests are added in the future.

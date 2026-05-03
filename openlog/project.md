@@ -35,6 +35,7 @@ described in the repo-root `README.md` and `CLAUDE.md`.
 - **Runtime:** Node 18+. CLI entry point is `bin/openlog.js`, which
   loads `dist/cli/index.js`.
 - **CLI framework:** `commander`.
+- **Package:** `@nk7260ynpa/openlog` (v1.0.0).
 - **Package manager:** `pnpm` for development; `npm i -g` is the
   supported global-install path. `dist/` is committed to the repo
   (since v0.3.5) so global installs do not need a TypeScript toolchain.

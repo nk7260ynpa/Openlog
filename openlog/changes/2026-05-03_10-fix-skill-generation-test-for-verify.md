@@ -1,4 +1,4 @@
-# fix(test): 更新 skill-generation 測試以包含 verify workflow
+# fix(test): Update skill-generation tests to include verify workflow
 
 - **Date:** 2026-05-03
 - **Author:** nk7260ynpa
@@ -6,26 +6,26 @@
 
 ## Summary
 
-修正 `test/core/shared/skill-generation.test.ts` 中兩處 assertion 的期望值，從 `['apply', 'record', 'explore']` 更新為 `['apply', 'record', 'explore', 'verify']`，使測試與先前新增的 verify workflow 註冊保持一致，修復 GitHub Actions CI 失敗。
+Fixed two assertion expected values in `test/core/shared/skill-generation.test.ts`, updating from `['apply', 'record', 'explore']` to `['apply', 'record', 'explore', 'verify']` to align with the previously added verify workflow registration, fixing the GitHub Actions CI failure.
 
 ## Motivation / context
 
-v0.5.6 新增 `/oplg:verify` workflow 時，已在 `src/core/shared/skill-generation.ts` 正確註冊了 verify，但遺漏更新對應的測試期望值。導致 CI pipeline 的 `npm test` 階段在 Node 20 與 Node 22 兩個 matrix 均失敗（2 tests failed / 40 passed）。
+When v0.5.6 added the `/oplg:verify` workflow, the verify entry was correctly registered in `src/core/shared/skill-generation.ts`, but the corresponding test expectations were not updated. This caused the CI pipeline's `npm test` step to fail on both the Node 20 and Node 22 matrix entries (2 tests failed / 40 passed).
 
 ## Key changes
 
-- `test/core/shared/skill-generation.test.ts`: 第 13 行與第 31 行的 `toEqual` assertion 加入 `'verify'`
+- `test/core/shared/skill-generation.test.ts`: Added `'verify'` to the `toEqual` assertions on lines 13 and 31.
 
 ## Impact
 
-- 修復 CI 紅燈，無 breaking change，不影響任何 user-facing 行為。
+- Fixes CI red status. No breaking change, no user-facing behavior impact.
 
 ## Verification
 
-- `npm run build`：成功
-- `npm test`：42/42 全數通過
-- `/oplg:verify` 審查結果：PASS
+- `npm run build`: success
+- `npm test`: 42/42 all passed
+- `/oplg:verify` review result: PASS
 
 ## Follow-ups
 
-- [ ] 無
+- [ ] None

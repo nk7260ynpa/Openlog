@@ -1,4 +1,4 @@
-# ci: 新增 PR-triggered build-only CI check
+# ci: Add PR-triggered build-only CI check
 
 - **Date:** 2026-05-03
 - **Author:** nk7260ynpa
@@ -6,35 +6,27 @@
 
 ## Summary
 
-在 `.github/workflows/ci.yml` 新增 `pull_request` trigger（目標 `main`
-分支），對應一個只跑 `npm ci` + `npm run build` 的 `build` job（Node 20/22
-matrix）。原有的 tag push 觸發（build + test）以 `if: github.event_name ==
-'push'` 條件保留不變。
+Added a `pull_request` trigger (targeting the `main` branch) to `.github/workflows/ci.yml`, with a `build` job that only runs `npm ci` + `npm run build` (Node 20/22 matrix). The existing tag push trigger (build + test) is preserved with an `if: github.event_name == 'push'` condition.
 
 ## Motivation / context
 
-`2026-05-03_08-add-github-actions-ci.md` 的 follow-up 建議「Consider adding
-a PR-triggered lighter check (build-only, no test) if the team wants pre-merge
-validation」。此變更實現該建議，讓 PR 在合併前有基本的型別編譯驗證，同時
-避免在每個 PR 都跑完整測試套件。
+The follow-up in `2026-05-03_08-add-github-actions-ci.md` suggested "Consider adding a PR-triggered lighter check (build-only, no test) if the team wants pre-merge validation". This change implements that suggestion, giving PRs a basic type-compilation check before merging while avoiding running the full test suite on every PR.
 
 ## Key changes
 
-- `.github/workflows/ci.yml`: 新增 `pull_request` trigger 與 `build` job；
-  為既有 `build-and-test` job 加上 `if: github.event_name == 'push'` 條件。
-- `README.md`: CI 描述從 "runs on tag push" 更新為 "build on PR, build + test
-  on tag push"。
+- `.github/workflows/ci.yml`: Added `pull_request` trigger and `build` job; added `if: github.event_name == 'push'` condition to the existing `build-and-test` job.
+- `README.md`: Updated CI description from "runs on tag push" to "build on PR, build + test on tag push".
 
 ## Impact
 
-- PR 開啟或更新時自動觸發編譯檢查，提供 pre-merge 品質關卡。
-- 原有的 tag push CI 行為不變。
+- PRs opened or updated will automatically trigger a compile check, providing a pre-merge quality gate.
+- Existing tag push CI behavior is unchanged.
 
 ## Verification
 
-- YAML 語法手動檢查通過。
-- `npm run build`: 編譯通過。
+- YAML syntax manually verified.
+- `npm run build`: compiled successfully.
 
 ## Follow-ups
 
-- [ ] 無
+- [ ] None

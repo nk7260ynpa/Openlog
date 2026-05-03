@@ -1,4 +1,4 @@
-# test: 設定 vitest V8 coverage reporting
+# test: Configure vitest V8 coverage reporting
 
 - **Date:** 2026-05-03
 - **Author:** nk7260ynpa
@@ -6,35 +6,30 @@
 
 ## Summary
 
-安裝 `@vitest/coverage-v8` 作為 devDependency，在 `vitest.config.ts` 設定
-V8 coverage provider（scope 為 `src/**/*.ts`，輸出 `text` + `lcov` 格式），
-並在 `package.json` 新增 `test:coverage` script（`vitest run --coverage`）。
+Installed `@vitest/coverage-v8` as a devDependency, configured the V8 coverage provider in `vitest.config.ts` (scope: `src/**/*.ts`, output: `text` + `lcov`), and added a `test:coverage` script (`vitest run --coverage`) to `package.json`.
 
 ## Motivation / context
 
-`2026-05-03_07-add-vitest-unit-tests.md` 的 follow-up 建議「Consider adding
-coverage reporting (`vitest --coverage`)」。有了 coverage 報告，可以量化測試
-覆蓋率並在未來設定 coverage threshold 或整合 CI coverage badge。
+The follow-up in `2026-05-03_07-add-vitest-unit-tests.md` suggested "Consider adding coverage reporting (`vitest --coverage`)". With coverage reporting in place, test coverage can be quantified and future work can set coverage thresholds or integrate CI coverage badges.
 
 ## Key changes
 
-- `package.json`: 新增 `@vitest/coverage-v8` devDependency 與 `test:coverage` script
-- `vitest.config.ts`: 新增 `coverage` 區塊（provider: v8, include: src/**/*.ts,
-  reporter: text + lcov）
-- `README.md`: Development commands 表新增 `npm run test:coverage` 列
+- `package.json`: Added `@vitest/coverage-v8` devDependency and `test:coverage` script
+- `vitest.config.ts`: Added `coverage` block (provider: v8, include: src/**/*.ts, reporter: text + lcov)
+- `README.md`: Added `npm run test:coverage` row to the Development commands table
 
 ## Impact
 
-- 開發者可用 `npm run test:coverage` 產出 coverage 報告。
-- 不影響既有的 `npm test`（不帶 coverage）。
-- 初始 coverage：Statements 61.94%, Branches 51.03%, Functions 67.12%, Lines 61.65%。
+- Developers can generate coverage reports with `npm run test:coverage`.
+- Does not affect existing `npm test` (runs without coverage).
+- Initial coverage: Statements 61.94%, Branches 51.03%, Functions 67.12%, Lines 61.65%.
 
 ## Verification
 
-- `npm run test:coverage`: 53 tests passed, coverage 報告正常產出
-- `npm run build`: 編譯通過
+- `npm run test:coverage`: 53 tests passed, coverage report generated successfully
+- `npm run build`: compiled successfully
 
 ## Follow-ups
 
-- [ ] 考慮在 CI 中加入 coverage 報告上傳（如 Codecov）
-- [ ] 考慮設定 coverage threshold 防止覆蓋率下降
+- [ ] Consider adding coverage report upload to CI (e.g. Codecov)
+- [ ] Consider setting coverage thresholds to prevent regression
