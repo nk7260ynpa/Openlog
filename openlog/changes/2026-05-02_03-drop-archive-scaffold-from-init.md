@@ -1,5 +1,3 @@
-_Supplementary context from invocation: "tag"._
-
 # feat(init): drop `openlog/changes/archive/` scaffold from `openlog init`
 
 - **Date:** 2026-05-02
