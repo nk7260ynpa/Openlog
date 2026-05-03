@@ -8,8 +8,9 @@ Openlog is a small Node CLI that scaffolds an `openlog/` directory plus
 matching slash commands / Agent Skills for selected AI tools (currently
 Claude Code and GitHub Copilot). The scaffolding installs a fixed
 three-stage workflow — `/oplg:explore`, `/oplg:apply`, `/oplg:record` —
-that lets an AI assistant research, edit, and log changes against a
-codebase under a strict surface-ownership contract.
+plus an auxiliary `/oplg:verify` review command, that lets an AI
+assistant research, edit, review, and log changes against a codebase
+under a strict surface-ownership contract.
 
 This file is the entry point to the `openlog/` directory itself; for
 the user-facing CLI documentation see the repo-root `README.md`.
@@ -52,6 +53,7 @@ authoritative wording lives in `openlog/specs/oplg-pipeline-contract.md`
 |-------|----------|-----------|----------|----------------|
 | 1 | `/oplg:explore` | nothing | everything | everything |
 | 2 | `/oplg:apply` | source code, `README.md`, `dist/`, configuration outside `openlog/` | everything | the entire `openlog/` directory |
+| — | `/oplg:verify` | nothing (read-only) | everything | everything |
 | 3 | `/oplg:record` | the entire `openlog/` directory (`project.md`, `specs/`, `changes/`) | everything | anything outside `openlog/` |
 
 Drift across surfaces is reported via handoff lines, never via
@@ -65,7 +67,10 @@ point the user back at Stage 2 when, e.g., `README.md` has drifted.
 2. **Ship** with `/oplg:apply <action>`, one entry per commit. Each
    entry: edit → sync `README.md` (when user-facing) → `node build.js`
    → commit → push.
-3. **Log** with `/oplg:record` — auto-derives titles from the diff and
+3. **Review** (optional) with `/oplg:verify` — read-only code review
+   scoped to the current session's `/oplg:apply` commits. Outputs a
+   structured PASS/NEEDS_FIXES verdict.
+4. **Log** with `/oplg:record` — auto-derives titles from the diff and
    writes one record per entry under `openlog/changes/`, plus any
    needed updates to `openlog/project.md` or `openlog/specs/`.
 
