@@ -42,4 +42,4 @@ Verifier（`verifier.md:90-101`）萃取判斷準則，轉譯成 Openlog CLI 語
 
 ## Follow-ups
 
-- [ ] 更新 `openlog/specs/oplg-pipeline-contract.md` Stage 3 MUST 區段以反映新的六項觸發條件（本次 `/oplg:record` 的 Step 4 同步）。
+- [x] 更新 `openlog/specs/oplg-pipeline-contract.md` Stage 3 MUST 區段以反映新的六項觸發條件 — 已於 spec rev. 3 完成（lines 142-161）。
