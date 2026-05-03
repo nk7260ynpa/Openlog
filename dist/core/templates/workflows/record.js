@@ -106,14 +106,21 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
 
    Use minimal diffs for each update; do not rewrite whole documents.
 
-5. **Commit and push**
+5. **Validate**
+
+   After all record files and internal-doc updates have been written (steps 3–4), run \`openlog validate\` to check format consistency across \`openlog/\`.
+
+   - If validation passes: proceed to step 6.
+   - If validation reports errors: fix them before committing. If a fix is not obvious after a couple of attempts, stop and report the validation output to the user.
+
+6. **Commit and push**
 
    - Stage the new record file(s) and any internal-doc updates from step 4.
    - Create a commit using Conventional Commits (typically \`docs(openlog): ...\`) and the project's existing commit-message style.
    - Run \`git push\` to the current branch's existing upstream.
    - If \`git push\` fails (no upstream, network error, non-fast-forward rejection), stop and report; do not force-push.
 
-6. **Summary report**
+7. **Summary report**
 
    Produce a short bulleted summary:
    - Path of each new record file (link).
