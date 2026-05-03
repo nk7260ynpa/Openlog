@@ -76,13 +76,13 @@ point the user back at Stage 2 when, e.g., `README.md` has drifted.
    writes one record per entry under `openlog/changes/`, plus any
    needed updates to `openlog/project.md` or `openlog/specs/`.
 
-For the user-facing CLI surface (`openlog init`, `openlog update`) see
-`README.md`.
+For the user-facing CLI surface (`openlog init`, `openlog update`,
+`openlog validate`) see `README.md`.
 
 ## Roadmap pointers
 
 Live roadmap is the "Roadmap" section in the repo-root `README.md`. The
 items currently outstanding that affect this directory specifically:
 
-- Spec / change-management subcommands (`openlog spec`, `openlog
-  change`, …) for listing, validating, and archiving.
+- `openlog validate` is now implemented (validates `openlog/` file
+  format consistency). No further subcommands are currently planned.
