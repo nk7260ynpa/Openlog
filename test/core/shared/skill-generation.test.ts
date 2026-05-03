@@ -10,7 +10,7 @@ describe('getSkillTemplates', () => {
   it('回傳所有預期的 skill templates', () => {
     const templates = getSkillTemplates();
     const ids = templates.map((t) => t.workflowId);
-    expect(ids).toEqual(['apply', 'record', 'explore']);
+    expect(ids).toEqual(['apply', 'record', 'explore', 'verify']);
   });
 
   it('每個 template 都有必要欄位', () => {
@@ -28,7 +28,7 @@ describe('getCommandTemplates', () => {
   it('回傳所有預期的 command templates', () => {
     const templates = getCommandTemplates();
     const ids = templates.map((t) => t.id);
-    expect(ids).toEqual(['apply', 'record', 'explore']);
+    expect(ids).toEqual(['apply', 'record', 'explore', 'verify']);
   });
 
   it('每個 template 都有必要欄位', () => {
