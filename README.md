@@ -1,5 +1,7 @@
 # Openlog
 
+[![CI](https://github.com/nk7260ynpa/Openlog/actions/workflows/ci.yml/badge.svg)](https://github.com/nk7260ynpa/Openlog/actions/workflows/ci.yml)
+
 AI-native logging companion CLI, built on the same TypeScript + Node.js stack as [OpenSpec](https://github.com/Fission-AI/OpenSpec).
 
 > The current release implements `openlog --version`, `openlog init`, and `openlog update`. More commands will follow.
@@ -48,6 +50,8 @@ Openlog/
 | CLI framework | [`commander`](https://www.npmjs.com/package/commander) |
 | Module format | ESM (`"type": "module"`) |
 | Build | `build.js` invokes the local `tsc`, output to `dist/` |
+| Test | [Vitest](https://vitest.dev/) |
+| CI | GitHub Actions — runs on tag push (`v*`) |
 | Bin entry | `bin/openlog.js` → `dist/cli/index.js` |
 
 ## Install
