@@ -111,6 +111,9 @@ have a stale symlink at
 
 ### After publishing to npm
 
+> **Not yet published.** `@chen/openlog` is not on npm yet. The
+> instructions below will apply once the package is published.
+
 ```bash
 npm install -g @chen/openlog@latest
 # or
