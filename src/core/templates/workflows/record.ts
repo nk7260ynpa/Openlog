@@ -38,9 +38,9 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
 
    For each unrecorded entry, derive its title from the changes themselves. **Do not** ask the user for a title, and **do not** use whatever text follows \`/oplg:record\` as the title.
 
-   - **Title (sentence describing the change)**: a single sentence covering "what was done + what it affects", e.g.:
+   - **Title (sentence describing the change)**: a single sentence covering "what was done + what it affects". Write in the user's preferred language (as configured in their CLAUDE.md or global settings). Examples:
      - "Add --dry-run flag to \`openlog init\`"
-     - "Fix git check logic in \`/oplg:apply\` when working tree is clean"
+     - "修正 \`/oplg:apply\` 在工作目錄乾淨時的 git 檢查邏輯"
      - When fitting, prefix with a Conventional Commits verb (feat/fix/refactor/docs/test/chore).
    - **slug (filename, alphanumeric + hyphen)**: distill the title into a concise English slug, lower-case, kebab-case, ~6 words max. Examples: \`add-dry-run-to-init\`, \`fix-apply-clean-state-check\`. **Avoid non-ASCII filenames.**
    - **Path**: \`openlog/changes/<YYYY-MM-DD>_<NN>-<slug>.md\`, where \`<NN>\` is a two-digit completion-order counter for that date.
@@ -51,7 +51,7 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
 
 3. **Generate the record file (per entry)**
 
-   Use the following skeleton (English content; keep code/paths verbatim):
+   Use the following skeleton. Write content in the user's preferred language (as configured in their CLAUDE.md or global settings); keep code identifiers and file paths verbatim:
 
    \`\`\`markdown
    # <title>
