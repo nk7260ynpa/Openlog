@@ -27,6 +27,7 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
      - \`git log\` for commits made during the session (e.g. since the previous record's commit, or since the session-start ref).
      - \`git status --short\` + \`git diff\` for uncommitted changes still in the working tree.
      - Conversation context: design decisions and trade-offs that were agreed but not yet written to disk.
+     - Plan file (\`~/.claude/plans/\`): if the directory exists, find the most recently modified \`*.md\` file. Read it and check whether its content relates to the current session's changes (mentions the same files, modules, or features). If relevant, retain it as supplementary context for step 3. If no plan files exist or none relate to this session, skip silently.
    - Cross-check against existing files under \`openlog/changes/\`. Skip entries that are already represented; treat as new only those without a matching record.
    - If both git history and the working tree are empty and the conversation has nothing new: ask the user which range to record (e.g. commit hash range \`A..B\`); do not fabricate content.
    - If everything is already recorded: report "nothing new to record" and stop.
@@ -85,6 +86,12 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
    - [ ] TODO 2
    \`\`\`
 
+   If a relevant plan file was identified in step 1, use it to enrich the record content:
+   - **Summary**: incorporate the plan's stated goal and chosen approach when they add clarity beyond what the diff alone shows.
+   - **Motivation / context**: draw design rationale, alternatives considered, and architectural reasoning from the plan. Present these as session design decisions, not speculation.
+   - Do not add a separate "Plan" section or quote the plan verbatim — weave insights into the existing sections naturally.
+   - The plan file is context, not evidence of code changes. The **Key changes** section must still derive exclusively from actual diffs/commits.
+
 4. **Sync internal docs under \`openlog/\` (when applicable)**
 
    This workflow may **only** create or modify files under the \`openlog/\` directory. Anything outside \`openlog/\` (e.g. \`README.md\`, \`CLAUDE.md\`, \`CHANGELOG.md\`, source code, configuration) is **out of scope** and must not be modified here — those belong to \`/oplg:apply\` or another workflow.
@@ -132,7 +139,7 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
 
 - Allowed git operations without further confirmation: \`git add\`, \`git commit\`, \`git push\` to the current branch's existing upstream. **Not allowed without explicit user instruction**: \`reset --hard\`, \`push --force\`, branch deletion, history rewrites.
 - This workflow may **only** create or modify files under \`openlog/\`. Do **not** touch any file outside \`openlog/\` — including \`README.md\`, \`CLAUDE.md\`, \`CHANGELOG.md\`, source code, or settings. Defer all out-of-\`openlog/\` changes to \`/oplg:apply\` (or whichever workflow owns them).
-- Record content must come from real diffs / commits / conversation facts; **do not** fabricate code changes or test results.
+- Record content must come from real diffs / commits / conversation facts / session plan files; **do not** fabricate code changes or test results. Plan files enrich motivation and rationale only — they are never evidence of what code changed.
 - If a same-named file already exists in \`openlog/changes/\`: pick the next free \`<NN>\` counter; **do not** overwrite the existing one.
 - For \`openlog/\`-internal docs you are unsure about, list them in a "needs user decision" section instead of forcing a change.
 
