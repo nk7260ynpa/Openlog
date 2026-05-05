@@ -127,7 +127,15 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
    - Run \`git push\` to the current branch's existing upstream.
    - If \`git push\` fails (no upstream, network error, non-fast-forward rejection), stop and report; do not force-push.
 
-7. **Summary report**
+7. **Tag (when a version was updated)**
+
+   After the push in step 6, check whether any commit in this session updated the \`version\` field in \`package.json\` (compare \`git show HEAD:package.json\` or earlier commits against the previous state).
+
+   - If the version changed: create an annotated tag \`v<new-version>\` (e.g. \`v1.0.2\`) on the current HEAD and push it with \`git push origin v<new-version>\`.
+   - If no version change occurred: skip this step silently.
+   - If the tag already exists (e.g. from a prior run): skip and note it in the summary report.
+
+8. **Summary report**
 
    Produce a short bulleted summary:
    - Path of each new record file (link).
@@ -137,7 +145,7 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
 
 **Guardrails**
 
-- Allowed git operations without further confirmation: \`git add\`, \`git commit\`, \`git push\` to the current branch's existing upstream. **Not allowed without explicit user instruction**: \`reset --hard\`, \`push --force\`, branch deletion, history rewrites.
+- Allowed git operations without further confirmation: \`git add\`, \`git commit\`, \`git push\` to the current branch's existing upstream, \`git tag\`, \`git push origin <tag>\`. **Not allowed without explicit user instruction**: \`reset --hard\`, \`push --force\`, branch deletion, history rewrites.
 - This workflow may **only** create or modify files under \`openlog/\`. Do **not** touch any file outside \`openlog/\` — including \`README.md\`, \`CLAUDE.md\`, \`CHANGELOG.md\`, source code, or settings. Defer all out-of-\`openlog/\` changes to \`/oplg:apply\` (or whichever workflow owns them).
 - Record content must come from real diffs / commits / conversation facts / session plan files; **do not** fabricate code changes or test results. Plan files enrich motivation and rationale only — they are never evidence of what code changed.
 - If a same-named file already exists in \`openlog/changes/\`: pick the next free \`<NN>\` counter; **do not** overwrite the existing one.
@@ -158,6 +166,9 @@ const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in th
 ### Commit
 - 7f3d1ab — docs(openlog): record dry-run + apply clean-state fixes
 - pushed to origin/main
+
+### Tag
+- v1.0.2 — pushed to origin
 
 ### Needs user decision
 - README drifted on the new --dry-run flag — please run \`/oplg:apply update README for --dry-run\` to sync it (out of scope for /oplg:record).
