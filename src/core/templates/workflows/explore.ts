@@ -16,80 +16,58 @@ import type { SkillTemplate, CommandTemplate } from '../types.js';
 
 const SHARED_BODY = `Read the "topic to explore" from user input (free-form text, e.g. \`/oplg:explore how does init wire up adapters?\`) and produce a **structured, read-only investigation report**. This workflow does not modify code, content, or git state — its job is to organize findings so that the user (or \`/oplg:apply\`) can act on them next.
 
+**Output rules**
+
+- 簡潔為先：每個 section 控制在 3–5 行；沒有發現的 section 直接省略。
+- 不要重複模板指示文字；只輸出實際內容。
+- 優先用 bullet list，避免長段落敘事。
+- 每個 claim 必須引用 \`file:line\`；不確定的標記 "unverified"。
+- 不要編造檔案路徑、函式名稱、commit hash 或行為。
+
 **Input**
 
-Everything after \`/oplg:explore <topic>\` is the topic. If the topic is empty or extremely vague (e.g. just the word \`look\`), you **must** call AskUserQuestion to clarify what to investigate (which subsystem, which files, which question to answer) before continuing.
+Everything after \`/oplg:explore <topic>\` is the topic. If the topic is empty or extremely vague (e.g. just the word \`look\`), you **must** call AskUserQuestion to clarify before continuing. If the topic contains an edit request, split it: investigate here, defer the edit to \`/oplg:apply\`.
 
 **Hard guardrails (read-only)**
 
 - **Do not** call Edit, Write, NotebookEdit, or any tool that mutates files.
-- **Do not** run shell commands that mutate state: no \`git add\`, \`git commit\`, \`git push\`, \`git checkout\`, \`git reset\`, \`git stash\`, \`git mv\`, \`git rm\`, \`git tag\`, \`git merge\`, \`git rebase\`, \`git pull\`, \`git fetch --prune\`, \`npm i\`, \`pnpm i\`, \`pnpm run build\`, \`pnpm run dev*\`, package installs, schema migrations, container restarts, or anything that touches \`dist/\`, \`node_modules/\`, the database, or external services.
-- Read-only commands are fine: \`git log\`, \`git status\`, \`git diff\`, \`git show\`, \`git blame\`, \`ls\`, Read for files, \`grep\` / \`rg\`, \`find\`, \`tree\`, \`node --version\`.
-- If the user asks this workflow to "just go ahead and fix it", **stop** and tell them to re-run as \`/oplg:apply <action>\` using the handoff block this workflow produces. Do not start editing.
+- **Do not** run state-mutating shell commands (\`git add/commit/push/checkout/reset/stash/tag/merge/rebase/pull\`, \`npm i\`, \`pnpm i\`, \`pnpm run build\`, package installs, etc.).
+- Read-only commands are fine: \`git log/status/diff/show/blame\`, \`ls\`, Read, \`grep\`/\`rg\`, \`find\`, \`tree\`.
+- If the user asks to "just fix it", **stop** and tell them to use the handoff block with \`/oplg:apply\`.
 
 **Steps**
 
-1. **Frame the question**
-   - Restate the topic in one sentence so the user can confirm you understood it.
-   - If the topic mixes investigation with a clear edit request, **split it**: keep the investigation part for this workflow and explicitly note the edit part as a follow-up for \`/oplg:apply\`.
-   - Decide the smallest set of evidence needed to answer it (which directories, which files, which git history range, which docs).
+1. **Frame the question** — Restate the topic in one sentence. Decide the smallest set of evidence needed.
 
-2. **Gather evidence (read-only)**
-   - Use Read, Grep, Glob, and read-only Bash commands listed above.
-   - For each piece of evidence, capture: \`path\`, \`line range\` (when known), and a short quote or summary. Always cite \`file_path:line_number\` so the user can jump to source.
-   - Do not load files outside the topic's scope just because they are nearby. Stay focused.
-   - If you must check external information, prefer WebFetch / WebSearch over guessing — but **never** download or install anything.
+2. **Gather evidence** — Use Read, Grep, and read-only Bash. Capture \`path:line\` and a short summary per finding. Stay focused on the topic scope.
 
-3. **Organize the findings**
-
-   Produce a single markdown report with the sections below. Keep it tight; quality over volume.
+3. **Report** — Use the template below. **省略沒有內容的 section。**
 
    \`\`\`markdown
-   ## /oplg:explore — <one-line topic restatement>
+   ## /oplg:explore — <one-line topic>
 
    ### Summary
-   2–4 sentences answering the topic directly. Lead with the conclusion.
+   2–4 sentences, conclusion first.
 
    ### Key files
-   - \`path/to/file.ts:LINE\` — one-line role in the topic
-   - \`path/to/other.ts:LINE-LINE\` — …
+   - \`path/to/file.ts:LINE\` — role
 
-   ### How it works (or: what's there today)
-   Short narrative of the current behavior / structure, in the order a reader would walk through it. Cite \`file:line\` inline.
+   ### How it works
+   Walk-through narrative, cite \`file:line\` inline.
 
-   ### Gaps, risks, or open questions
-   - Bullet list of things that are missing, ambiguous, or worth confirming with the user before any change.
+   ### Gaps or open questions *(omit if none)*
+   - Bullet list.
 
-   ### Suggested next actions for \`/oplg:apply\`
-   A bulleted, **actionable** list. Each bullet is phrased so it can be pasted after \`/oplg:apply\` verbatim. Group related edits into a single bullet (one entry → one commit, per /oplg:apply rules); keep unrelated edits as separate bullets.
+   ### Suggested next actions for \`/oplg:apply\` *(omit if none)*
+   - Actionable bullets, each paste-ready for \`/oplg:apply\`.
 
-   ### Handoff block (paste-ready)
+   ### Handoff block *(omit if no actions needed)*
    \`\`\`text
-   /oplg:apply <copy-paste action description here, derived from "Suggested next actions">
+   /oplg:apply <action>
    \`\`\`
-   If multiple unrelated actions are needed, emit one paste-ready line per action — \`/oplg:apply\` will turn each into its own commit.
    \`\`\`
 
-4. **Stop without changing anything**
-   - Do not stage, commit, or push. Do not run builds. Do not modify \`README.md\`, \`CLAUDE.md\`, \`openlog/\`, or any source.
-   - End the response with the report above and the handoff block. The user decides whether to run \`/oplg:apply\` next.
-
-**When to call this workflow**
-
-- Before non-trivial edits, when the user wants a map of the relevant code first.
-- When the user asks "where is X?", "how does Y work?", "what would it take to change Z?", "is there already something that does W?".
-- When a previous \`/oplg:apply\` failed or was rolled back and the user wants to re-investigate before retrying.
-
-**When NOT to call this workflow**
-
-- When the user clearly wants an edit ("add X", "fix Y", "rename Z") — go straight to \`/oplg:apply\`.
-- When the user just wants to record what already happened — that's \`/oplg:record\`.
-
-**Output discipline**
-
-- Cite \`file:line\` for every concrete claim about the codebase.
-- Never invent file paths, function names, commit hashes, or behaviors. If unsure, say "unverified" and list how the user could verify.
-- Keep the report focused on the topic; do not slip into unrelated refactor suggestions.
+4. **Stop** — Do not modify any file, commit, or push.
 `;
 
 export function getExploreSkillTemplate(): SkillTemplate {

@@ -9,173 +9,72 @@
 
 import type { SkillTemplate, CommandTemplate } from '../types.js';
 
-const SHARED_BODY = `Find every "entry" (an individual change or sub-task) in the current session that has **not yet been recorded** under \`openlog/changes/\`, then write one record file per entry and update internal documentation as needed.
+const SHARED_BODY = `Find every unrecorded entry (individual change or sub-task) in the current session, write one record file per entry under \`openlog/changes/\`, and update internal docs as needed.
+
+**Output rules**
+
+- 簡潔為先：summary report 每個 section 3–5 行；沒有內容的 section 直接省略。
+- 不要重複模板指示文字；只輸出實際內容。
+- 優先用 bullet list，避免長段落敘事。
+- Record 內容必須來自真實 diff / commit / 對話事實；不要編造。
 
 **Input**
 
-\`/oplg:record\` takes no arguments. Title, slug, and filename are inferred from the actual changes. Even if the user types text after the command, treat it as **supplementary context**, not a title override — the title still derives from the diff itself.
+\`/oplg:record\` takes no arguments. Title, slug, and filename are all inferred from actual changes — text after the command is supplementary context only, never a title override.
 
-**Pre-flight checks**
-
-- If there is no \`openlog/\` at the project root: prompt the user to run \`openlog init\` first and stop.
-- If \`openlog/changes/\` does not exist: create it automatically.
+**Pre-flight**: no \`openlog/\` → prompt \`openlog init\` and stop. No \`openlog/changes/\` → create it.
 
 **Steps**
 
-1. **Inventory the unrecorded entries**
+1. **Inventory unrecorded entries** — Gather from \`git log\` (session commits), \`git status/diff\` (uncommitted), conversation context, and plan files (\`~/.claude/plans/*.md\`, only if relevant to this session). Cross-check against existing \`openlog/changes/\` to skip already-recorded items. One logical change = one entry. If nothing to record, report and stop.
 
-   The goal is to enumerate every entry from the **current session** that has not yet been written into a record file, and produce one record file per entry. Treat each logically distinct change (one feature, one fix, one refactor, ...) as its own entry — do not merge unrelated changes into a single record.
+2. **Auto-generate title and path (per entry)** — Derive title from the diff (not from user input). Write title in the user's preferred language; prefix with Conventional Commits verb when fitting. Slug: English, kebab-case, ~6 words max. Path: \`openlog/changes/<YYYY-MM-DD>_<NN>-<slug>.md\` (\`<NN>\` = two-digit counter, increment past existing).
 
-   - Gather candidate entries from:
-     - \`git log\` for commits made during the session (e.g. since the previous record's commit, or since the session-start ref).
-     - \`git status --short\` + \`git diff\` for uncommitted changes still in the working tree.
-     - Conversation context: design decisions and trade-offs that were agreed but not yet written to disk.
-     - Plan file (\`~/.claude/plans/\`): if the directory exists, find the most recently modified \`*.md\` file. Read it and check whether its content relates to the current session's changes (mentions the same files, modules, or features). If relevant, retain it as supplementary context for step 3. If no plan files exist or none relate to this session, skip silently.
-   - Cross-check against existing files under \`openlog/changes/\`. Skip entries that are already represented; treat as new only those without a matching record.
-   - If both git history and the working tree are empty and the conversation has nothing new: ask the user which range to record (e.g. commit hash range \`A..B\`); do not fabricate content.
-   - If everything is already recorded: report "nothing new to record" and stop.
-
-2. **Auto-generate title and file path (per entry)**
-
-   For each unrecorded entry, derive its title from the changes themselves. **Do not** ask the user for a title, and **do not** use whatever text follows \`/oplg:record\` as the title.
-
-   - **Title (sentence describing the change)**: a single sentence covering "what was done + what it affects". Write in the user's preferred language (as configured in their CLAUDE.md or global settings). Examples:
-     - "Add --dry-run flag to \`openlog init\`"
-     - "修正 \`/oplg:apply\` 在工作目錄乾淨時的 git 檢查邏輯"
-     - When fitting, prefix with a Conventional Commits verb (feat/fix/refactor/docs/test/chore).
-   - **slug (filename, alphanumeric + hyphen)**: distill the title into a concise English slug, lower-case, kebab-case, ~6 words max. Examples: \`add-dry-run-to-init\`, \`fix-apply-clean-state-check\`. **Avoid non-ASCII filenames.**
-   - **Path**: \`openlog/changes/<YYYY-MM-DD>_<NN>-<slug>.md\`, where \`<NN>\` is a two-digit completion-order counter for that date.
-     - The first record of a given date starts at \`_01\`; the next is \`_02\`, then \`_03\`, and so on.
-     - Determine \`<NN>\` by listing existing files under \`openlog/changes/\` whose name starts with the same date and incrementing past the highest existing number.
-     - If a same-named file already exists, do not overwrite it; use the next free \`<NN>\`.
-   - List each inferred title, slug, and path in your final report so the user can rename via \`git mv\` later if desired.
-
-3. **Generate the record file (per entry)**
-
-   Use the following skeleton. Write content in the user's preferred language (as configured in their CLAUDE.md or global settings); keep code identifiers and file paths verbatim:
+3. **Generate record file (per entry)** — Use this skeleton (user's preferred language; code identifiers verbatim):
 
    \`\`\`markdown
    # <title>
 
    - **Date:** YYYY-MM-DD
-   - **Author:** <git config user.name or current user>
-   - **Related commit:** <commit hash if any; otherwise "uncommitted">
+   - **Author:** <git user>
+   - **Related commit:** <hash or "uncommitted">
 
    ## Summary
-
-   One paragraph describing what changed and why.
+   One paragraph: what changed and why.
 
    ## Motivation / context
-
-   Why this change is needed (bug, requirement, tech debt, experiment, ...).
+   Why this change is needed.
 
    ## Key changes
-
-   - \`path/to/file.ts\`: <one-line summary>
-   - \`path/to/other.ts\`: <one-line summary>
+   - \`path/to/file.ts\`: one-line summary
 
    ## Impact
-
-   - Which features / modules are affected? Any breaking changes?
+   Affected features / breaking changes.
 
    ## Verification
+   Steps performed and outcome.
 
-   - Tests / builds / manual steps performed.
-   - Outcome.
-
-   ## Follow-ups
-
-   - [ ] TODO 1
-   - [ ] TODO 2
+   ## Follow-ups *(omit if none)*
+   - [ ] TODO
    \`\`\`
 
-   If a relevant plan file was identified in step 1, use it to enrich the record content:
-   - **Summary**: incorporate the plan's stated goal and chosen approach when they add clarity beyond what the diff alone shows.
-   - **Motivation / context**: draw design rationale, alternatives considered, and architectural reasoning from the plan. Present these as session design decisions, not speculation.
-   - Do not add a separate "Plan" section or quote the plan verbatim — weave insights into the existing sections naturally.
-   - The plan file is context, not evidence of code changes. The **Key changes** section must still derive exclusively from actual diffs/commits.
+   If a relevant plan file exists, weave its rationale into Summary and Motivation naturally — don't quote it verbatim or add a separate Plan section. Key changes must derive from actual diffs only.
 
-4. **Sync internal docs under \`openlog/\` (when applicable)**
+4. **Sync openlog/ internal docs** — This workflow may **only** modify files under \`openlog/\`. Update \`openlog/project.md\` or \`openlog/specs/\` when: CLI flags change, public API contracts change, cross-workflow invariants are affected, specs drifted, or breaking changes are introduced. Skip for: internal refactors, perf, dep upgrades, bug fixes restoring spec'd behavior. Out-of-\`openlog/\` docs that need updating → list under "needs user decision", defer to \`/oplg:apply\`.
 
-   This workflow may **only** create or modify files under the \`openlog/\` directory. Anything outside \`openlog/\` (e.g. \`README.md\`, \`CLAUDE.md\`, \`CHANGELOG.md\`, source code, configuration) is **out of scope** and must not be modified here — those belong to \`/oplg:apply\` or another workflow.
+5. **Validate** — Run \`openlog validate\`. Fix errors before committing; if stuck, report to user.
 
-   Based on the change, **proactively** decide whether the following \`openlog/\`-internal docs need updates; if so, update them and list each one in the final report.
+6. **Commit and push** — Stage record files + internal-doc updates. Conventional Commits style. \`git push\` to current upstream; stop and report on failure.
 
-   - \`openlog/project.md\`: update when the tech stack, layout, or workflow changes.
-   - Existing specs under \`openlog/specs/\`: update or add a spec when **any** of the following applies to a recorded entry:
-     1. A user-facing CLI flag, subcommand, or argument is added, removed, or renamed.
-     2. A public API contract changes (exported function signature, config schema, template output format).
-     3. A cross-workflow invariant is affected (e.g. surface ownership, handoff protocol, file naming convention).
-     4. An existing spec's Requirement or Scenario no longer matches the implementation (the WHEN/THEN drifted).
-     5. A capability is deprecated or removed (the spec must note Reason and Migration).
-     6. A breaking change is introduced (anything that forces downstream consumers to adapt).
+7. **Tag (if version changed)** — If \`package.json\` version was updated this session, create and push \`v<version>\` tag. Skip silently otherwise.
 
-     Do **not** update specs for: internal refactors that preserve behavior, performance optimizations, dependency upgrades that don't change behavior, bug fixes that restore originally-specified behavior, or test-only changes.
-
-   If you find that an out-of-\`openlog/\` doc clearly needs updating (e.g. \`README.md\` drifted), **do not** modify it here. List it under "needs user decision" in the final report so the user can re-run \`/oplg:apply\` to handle it.
-
-   Use minimal diffs for each update; do not rewrite whole documents.
-
-5. **Validate**
-
-   After all record files and internal-doc updates have been written (steps 3–4), run \`openlog validate\` to check format consistency across \`openlog/\`.
-
-   - If validation passes: proceed to step 6.
-   - If validation reports errors: fix them before committing. If a fix is not obvious after a couple of attempts, stop and report the validation output to the user.
-
-6. **Commit and push**
-
-   - Stage the new record file(s) and any internal-doc updates from step 4.
-   - Create a commit using Conventional Commits (typically \`docs(openlog): ...\`) and the project's existing commit-message style.
-   - Run \`git push\` to the current branch's existing upstream.
-   - If \`git push\` fails (no upstream, network error, non-fast-forward rejection), stop and report; do not force-push.
-
-7. **Tag (when a version was updated)**
-
-   After the push in step 6, check whether any commit in this session updated the \`version\` field in \`package.json\` (compare \`git show HEAD:package.json\` or earlier commits against the previous state).
-
-   - If the version changed: create an annotated tag \`v<new-version>\` (e.g. \`v1.0.2\`) on the current HEAD and push it with \`git push origin v<new-version>\`.
-   - If no version change occurred: skip this step silently.
-   - If the tag already exists (e.g. from a prior run): skip and note it in the summary report.
-
-8. **Summary report**
-
-   Produce a short bulleted summary:
-   - Path of each new record file (link).
-   - List of updated internal docs (one-line reason each).
-   - Commit SHA and push result.
-   - Any files you skipped or were unsure about, so the user can decide.
+8. **Summary report** — Short bullets: new files, updated docs, commit SHA, push result, skipped items. **省略沒有內容的 section。**
 
 **Guardrails**
 
-- Allowed git operations without further confirmation: \`git add\`, \`git commit\`, \`git push\` to the current branch's existing upstream, \`git tag\`, \`git push origin <tag>\`. **Not allowed without explicit user instruction**: \`reset --hard\`, \`push --force\`, branch deletion, history rewrites.
-- This workflow may **only** create or modify files under \`openlog/\`. Do **not** touch any file outside \`openlog/\` — including \`README.md\`, \`CLAUDE.md\`, \`CHANGELOG.md\`, source code, or settings. Defer all out-of-\`openlog/\` changes to \`/oplg:apply\` (or whichever workflow owns them).
-- Record content must come from real diffs / commits / conversation facts / session plan files; **do not** fabricate code changes or test results. Plan files enrich motivation and rationale only — they are never evidence of what code changed.
-- If a same-named file already exists in \`openlog/changes/\`: pick the next free \`<NN>\` counter; **do not** overwrite the existing one.
-- For \`openlog/\`-internal docs you are unsure about, list them in a "needs user decision" section instead of forcing a change.
-
-**Output format example**
-
-\`\`\`
-## /oplg:record done
-
-### New
-- openlog/changes/2026-05-01_01-add-dry-run-flag.md
-- openlog/changes/2026-05-01_02-fix-apply-clean-state-check.md
-
-### Updated
-- openlog/project.md: added dry-run note in the dev commands section
-
-### Commit
-- 7f3d1ab — docs(openlog): record dry-run + apply clean-state fixes
-- pushed to origin/main
-
-### Tag
-- v1.0.2 — pushed to origin
-
-### Needs user decision
-- README drifted on the new --dry-run flag — please run \`/oplg:apply update README for --dry-run\` to sync it (out of scope for /oplg:record).
-\`\`\`
+- Allowed: \`git add/commit/push\` (current upstream), \`git tag/push tag\`. Not allowed without user instruction: \`reset --hard\`, \`push --force\`, branch deletion, history rewrites.
+- **openlog/-only**: do not touch files outside \`openlog/\`.
+- Never overwrite existing record files; use next free \`<NN>\`.
 `;
 
 export function getRecordSkillTemplate(): SkillTemplate {

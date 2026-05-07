@@ -8,6 +8,11 @@
  */
 const SHARED_BODY = `Read the "action to perform" from user input (free-form text, e.g. \`/oplg:apply add --dry-run to init\`) and modify the code directly.
 
+**Output rules**
+
+- 簡潔為先：狀態更新與 commit 報告每個 section 3–5 行；不要重複模板指示文字。
+- 優先用 bullet list，避免長段落敘事。
+
 **Input**
 
 Everything after \`/oplg:apply <action>\` is the action description. If the description is empty or extremely vague (e.g. just the word \`fix\`), you **must** call AskUserQuestion to clarify before continuing.

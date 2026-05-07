@@ -12,68 +12,52 @@ import type { SkillTemplate, CommandTemplate } from '../types.js';
 
 const SHARED_BODY = `Review code changes made by \`/oplg:apply\` in the current conversation session.
 
-**Scope**
+**Output rules**
 
-Unlike a full PR review, this command focuses exclusively on commits created by \`/oplg:apply\` during the current session. It identifies those commits by scanning the git log for Conventional Commits made since the session began (i.e. commits after the HEAD at conversation start).
+- 簡潔為先：每個 section 3–5 行；沒有 issue 的 section 直接省略。
+- 優先用 bullet list，避免長段落敘事。
+
+**Scope**: Only commits created by \`/oplg:apply\` during this session (Conventional Commits after session-start HEAD). If none found, report and stop.
 
 **Steps**
 
-1. **Identify session changes**
-   - Determine the commits created by \`/oplg:apply\` in this session. Use the conversation context to find which commits were pushed, or fall back to \`git log --oneline\` to identify recent commits authored by the current user during today's date.
-   - Run \`git diff <base>..HEAD\` where \`<base>\` is the commit before the first \`/oplg:apply\` commit in this session.
-   - If no \`/oplg:apply\` commits are found in this session, report "No /oplg:apply changes detected in this session" and stop.
+1. **Identify session changes** — Find \`/oplg:apply\` commits via conversation context or \`git log\`. Run \`git diff <base>..HEAD\`.
 
-2. **Collect changed files**
-   - Run \`git diff --name-only <base>..HEAD\` to list all files modified.
-   - Read the full content of each changed file (or the relevant diff hunks for large files).
+2. **Collect changed files** — \`git diff --name-only <base>..HEAD\`, then read relevant diff hunks.
 
-3. **Review aspects**
-   Perform the following checks on the changed code:
+3. **Review** — Check for: correctness (logic errors, edge cases), security (OWASP top-10), code quality & type safety, error handling, and README consistency if user-facing behavior changed.
 
-   - **Correctness**: Logic errors, off-by-one mistakes, null/undefined risks, unhandled edge cases.
-   - **Security**: Injection vulnerabilities, exposed secrets, unsafe deserialization, OWASP top-10 patterns.
-   - **Code quality**: Naming clarity, function length, duplication, dead code, adherence to the project's existing style.
-   - **Type safety**: Proper TypeScript types, avoid \`any\`, correct generics usage (if applicable).
-   - **Error handling**: Silent failures, overly broad catches, missing error propagation.
-   - **Tests**: Whether new/modified logic has corresponding test coverage (if the project has a test framework).
-   - **README consistency**: If the change affects user-facing behavior, verify that README.md was updated accordingly.
-
-4. **Produce the report**
-   Output a structured review:
+4. **Report** — Use the template below. **省略沒有內容的 section。**
 
    \`\`\`markdown
    # /oplg:verify Review
 
    ## Scope
-   Commits reviewed: <list of short SHAs and messages>
-   Files changed: <count>
+   Commits: <short SHAs> | Files changed: <count>
 
-   ## Critical Issues (must fix)
+   ## Critical Issues (must fix) *(omit if none)*
    - [file:line] Description
 
-   ## Important Issues (should fix)
+   ## Important Issues (should fix) *(omit if none)*
    - [file:line] Description
 
-   ## Suggestions (nice to have)
+   ## Suggestions *(omit if none)*
    - [file:line] Description
 
-   ## Positive Observations
+   ## Positive Observations *(omit if none)*
    - What's well-done
 
    ## Verdict
    PASS | NEEDS_FIXES
    \`\`\`
 
-5. **Verdict logic**
-   - **PASS**: No critical or important issues found.
-   - **NEEDS_FIXES**: One or more critical or important issues exist. List them with actionable fix suggestions.
+   **PASS** = no critical or important issues. **NEEDS_FIXES** = one or more exist, with actionable fix suggestions.
 
 **Guardrails**
 
-- This is a **read-only** workflow. Do not modify any files, create commits, or push.
-- Do not review files outside the session's \`/oplg:apply\` diff scope.
-- If the diff is too large (>2000 lines changed), focus on critical/important issues and note that a full review was not feasible in one pass.
-- The \`openlog/\` directory is out of scope — do not review changes under \`openlog/\`.
+- **Read-only**: do not modify files, commit, or push.
+- Scope only to session \`/oplg:apply\` diffs; \`openlog/\` is out of scope.
+- If diff > 2000 lines, focus on critical/important issues and note partial coverage.
 `;
 
 export function getVerifySkillTemplate(): SkillTemplate {
