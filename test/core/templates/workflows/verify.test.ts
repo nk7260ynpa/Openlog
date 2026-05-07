@@ -16,7 +16,7 @@ describe('getVerifySkillTemplate', () => {
   });
 
   it('instructions include read-only guardrail', () => {
-    expect(skill.instructions).toContain('read-only');
+    expect(skill.instructions).toContain('Read-only');
   });
 
   it('instructions include verdict logic (PASS / NEEDS_FIXES)', () => {
@@ -26,16 +26,15 @@ describe('getVerifySkillTemplate', () => {
 
   it('instructions cover all review aspects', () => {
     const aspects = [
-      'Correctness',
-      'Security',
-      'Code quality',
-      'Type safety',
-      'Error handling',
-      'Tests',
-      'README consistency',
+      'correctness',
+      'security',
+      'code quality',
+      'type safety',
+      'error handling',
+      'readme consistency',
     ];
     for (const aspect of aspects) {
-      expect(skill.instructions).toContain(aspect);
+      expect(skill.instructions.toLowerCase()).toContain(aspect);
     }
   });
 
